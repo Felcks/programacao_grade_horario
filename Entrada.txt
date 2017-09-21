@@ -1,0 +1,14 @@
+dias_uteis 5
+qtd_aulas 4
+
+qtd_turmas 2
+1701 2
+1 4
+2 4
+1702 2 
+1 4
+2 4
+
+professores 2
+1 1 20
+2 2 21

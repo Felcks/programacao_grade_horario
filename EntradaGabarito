@@ -1,0 +1,15 @@
+dias_uteis 5
+qtd_aulas 4
+
+qtd_turmas 2
+turma = 1701 qtd_disciplinas = 2 
+tipo qtd
+tipo qtd
+
+1702 2 
+1 4
+2 4
+
+professores 2
+id disciplina qtd_creditos
+2 2 10
