@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 typedef struct professor{
 	int id;
 	char nome[100];
+	int materia;
 }Professor;
 
 typedef struct turma{
@@ -17,13 +19,15 @@ Professor* p; //Conjunto com todos os professores
 Turma* t; //Conjunto com todas as turmas
 
 int d[5] = {1, 2, 3, 4, 5}; //Conjunto de todos os dias de aula
-int nh = 5; //Número de horários de aula em um dia D
-int nd = 5; //Número de dias de aula por semana
+int nh = 0; //Número de horários de aula em um dia D
+int nd = 0; //Número de dias de aula por semana
+int np = 0; //Número de professores
+int nt = 0; //Número de turmas
 
 int w[2][5][5]; //Não preferencia de um professor p por horário H no dia D --> w[p][h][d]
-int r[2][2]; //Número de aulas para a turma T que o professor p tem que atender --> r[p][t]
+int **r; //Número de aulas para a turma T que o professor p tem que atender --> r[p][t]
 int R[2][2]; //Mesmo do de cima sendo que ele fica fixo
-int disp[2][5][5]; //Disponibilidade de um professor p num horário h num dia d --> disp[p][h][d]
+int ***disp; //Disponibilidade de um professor p num horário h num dia d --> disp[p][h][d]
 int ad[2][2]; //Número minímo de aulas duplas que um professor p da para uma turma t --> ad[p][t]
 
 int as[2][2][5]; //1 Se o professor p da aula pra turma t no dia da semana d --> as[p][t][d]
@@ -41,24 +45,92 @@ int atd[2][2][5]; //n é o numero de vezes que o professor p da aula pra turma t
 int x[2][2][5][5]; //Variavel de decisao! 1 se o professor p da aula pra turma t no dia d e no horario h --> x[p][t][d][h]
 
 
-void criarProfessores(Professor* p){
 
-	p = malloc(2 * sizeof(Professor));
-	p[0].id = 0;
-	strcpy(p[0].nome, "Marcelo");
+void lerDados(){
 
-	p[1].id = 1;
-	strcpy(p[1].nome, "João");
+	char url[]="Dados.txt";
+	char aux[100];
+	FILE *arq;
+
+	arq = fopen(url, "r");
+	if(arq == NULL)
+	    printf("Erro, nao foi possivel abrir o arquivo\n");
+	else{
+
+		fscanf(arq, "%s %i", aux, &nd);
+	    fscanf(arq, "%s %i", aux, &nh);
+	}
+
+	fclose(arq);
 }
 
-void criarTurmas(Turma* t){
+void lerProfessores(Professor* p){
+	char url[]="Professores.txt";
+	char aux[100];
+	FILE *arq;
 
-	t = malloc(2 * sizeof(Turma));
-	t[0].id = 0;
-	strcpy(t[0].nome, "1701");
+	arq = fopen(url, "r");
+	if(arq == NULL)
+	    printf("Erro, nao foi possivel abrir o arquivo\n");
+	else{
 
-	t[1].id = 1;
-	strcpy(t[1].nome, "1702");
+		fscanf(arq, "%s %i", aux, &np);
+		p = malloc(np * sizeof(Professor));
+
+		disp = (int***)calloc(np, sizeof(int**));
+		r = (int**)calloc(np, sizeof(int*));
+
+		for(int i = 0; i < np; i++){
+
+			p[i].id = i;
+			fscanf(arq, "%s %i", p[i].nome, &p[i].materia);
+
+
+			disp[i] = (int**)calloc(nd, sizeof(int*));
+			for(int j = 0; j < nd; j++){
+				disp[i][j] = (int*)calloc(nh, sizeof(int));
+				for(int k = 0; k < nh; k++){
+					fscanf(arq, "%i", &disp[i][j][k]);
+				}
+			}
+		}
+
+		for(int i = 0; i < np; i++){
+
+			r[i] = (int*)calloc(nt, sizeof(int*));
+			for(int j = 0; j < nt; j++){
+
+				fscanf(arq, "%i", &r[i][j]);
+			}
+		}
+
+	}
+	
+	fclose(arq);
+}
+
+int lerTurmas(Turma* t){
+
+	char url[]="Turmas.txt";
+	char aux[100];
+	FILE *arq;
+
+	arq = fopen(url, "r");
+	if(arq == NULL)
+	    printf("Erro, nao foi possivel aabrir o arquivo\n");
+	else{	
+
+		fscanf(arq, "%s %i", aux, &nt);
+		t = malloc(nt * sizeof(Turma));
+
+		for(int i = 0; i < nt; i++){
+
+			t[i].id = i;
+			fscanf(arq, "%s", t[i].nome);
+		}
+	}
+
+	fclose(arq);
 }
 
 int existeAulaParaAlocar(){
@@ -73,17 +145,65 @@ int existeAulaParaAlocar(){
 	return 0;
 }
 
+int temAulaNesseHorario_Turma(int t, int d, int h){
+
+	int temAulaAlocada = 0;
+	for(int i = 0; i < np; i++){
+
+		if(x[i][t][d][h] == 1){
+			temAulaAlocada = 1;
+			break;
+		}
+	}
+
+	return temAulaAlocada;
+}
+
+int temAulaNesseHorario_Professor(int p, int d, int h){
+
+	int temAulaAlocada = 0;
+	for(int j = 0; j < nt; j++){
+
+		if(x[p][j][d][h] == 1){
+			temAulaAlocada = 1;
+			break;
+		}
+	}
+
+	return temAulaAlocada;
+}
+
+int estaDisponivelNesseHorario(int p, int d, int h){
+
+	return disp[p][d][h];
+}
+
+int calcularAlocacoesDisponiveis(int p, int t){
+
+	int n_disp = 1;
+
+	for(int k = 0; k < nd; k++){
+		for(int y = 0; y < nh; y++){
+
+			if(temAulaNesseHorario_Turma(t, k, y) == 0 && temAulaNesseHorario_Professor(p, k, y) == 0){
+				n_disp += 1;
+			}			
+		}
+	}
+	
+	return n_disp;
+}
+
 
 int main(void){
 
-	criarProfessores(p);
-	criarTurmas(t);
 
-	//setando as aulas pra cada turma
-	r[0][0] = 6;
-	r[0][1] = 4;
-	r[1][0] = 4;
-	r[1][1] = 6;
+	srand(time(NULL));  
+
+	lerDados();
+	lerTurmas(t);
+	lerProfessores(p);
+
 
 	for(int i = 0; i < 2; i++){
 		for(int j = 0; j < 2; j++){
@@ -102,42 +222,65 @@ int main(void){
 		int tus[3] = {0, 0, 0};
 		float mus[3] = {0, 0, 0};
 
-		for(int i = 0; i < 2; i++){
-			for(int j = 0; j < 2; j++){
+		int qtd = 0;
 
+		for(int i = 0; i < np; i++){
+			for(int j = 0; j < nt; j++){
 
-				if(r[i][j] > 0){ //Se aquele professor da aula pra turma
+				if(r[i][j] > 0){ //Se aquele professor ainda dá aula para aquela turma
 					
-					float urgencia = 0;
-					urgencia = r[i][j];
+					float urgencia = r[i][j]; //Quantas aulas o professor ainda tem que dar para aquela turma
 
-
-					int n_disp = 1;
-					for(int  k = 0; k < 5; k++){
-						for(int y = 0; y < 5; y++){
-							if(x[i][j][k][y] == 0){
-								n_disp += 1;
-							}
-						}
-					}
+					int n_disp = calcularAlocacoesDisponiveis(i, j); //Numero total de alocações que as aulas podem ser agendadas sem violar a restrição essencial 2!!!
 
 					urgencia = urgencia / n_disp;
-					for(int k = 0; k < 3; k++){
-						if(urgencia > mus[k]){
+					if(urgencia > mus[0]){
 
-							float aux_u = mus[k];
-							int aux_pu = pus;
-							int aux_tu = tus;
+						mus[2] = mus[1];
+						pus[2] = pus[1];
+						tus[2] = tus[1];
 
-							mus[k] = urgencia;
-							pus = i;
-							tus = j;
+						mus[1] = mus[0];
+						pus[1] = pus[0];
+						tus[1] = tus[0];
 
-						}
+						mus[0] = urgencia;
+						pus[0] = i;
+						tus[0] = j;
+
+						qtd++;
 					}
+					else if(urgencia > mus[1]){
+						mus[2] = mus[1];
+						pus[2] = pus[1];
+						tus[2] = tus[1];
+
+						mus[1] = urgencia;
+						pus[1] = i;
+						tus[1] = j;
+
+						qtd++;
+					}
+					else if(urgencia > mus[2]){
+						mus[2] = urgencia;
+						pus[2] = i;
+						tus[2] = j;
+
+						qtd++;
+					}
+					
 				}
 			}
 		}
+
+		if(qtd >= 3)
+			qtd = 3;
+
+		int sorted = rand() % qtd;
+		pu = pus[sorted];
+		tu = tus[sorted];  
+
+		printf("p:%i t:%i\n", pu, tu);
 
 		//Agora entra o algoritmo de construção inicial pseudo aleatoria
 		//Vou pegar os 3 horários de aulas que não violam a restrição 2 ou 4
@@ -158,6 +301,9 @@ int main(void){
 				
 				for(int y = 0; y < 5; y++){
 
+					if(estaDisponivelNesseHorario(pu, k, y) == 0)
+						continue;
+					
 					int cPontuacao = 0; //pontuacao atual
 
 					if(am[pu][k] == 1){ //Se ele ja tem que aparecer na escola!
@@ -178,14 +324,8 @@ int main(void){
 							cPontuacao += 10;
 					}
 
-					//Rodando todos os professores para saber se algum da aula para aquela turma naquele horario
-					for(int a = 0; a < 2; a++){
-						if(x[a][tu][k][y] == 1)
-							cPontuacao -= 500;
-					}
 
-
-					if(cPontuacao > mPontuacao && x[pu][tu][k][y] == 0){
+					if(cPontuacao > mPontuacao && temAulaNesseHorario_Professor(pu, k, y) == 0 && temAulaNesseHorario_Turma(tu, k, y) == 0){
 						mPontuacao = cPontuacao;
 						mDia = k;
 						mHora = y;
@@ -202,10 +342,8 @@ int main(void){
 
 	//Printando a variavel de decisão
 	for(int i = 0; i < 2; i++){
-		printf("Professor %i\n",i);
 		for(int j = 0; j < 2; j++){
-			printf("Turma %i\n", j);
-			printf("Tem que dar: %i \n", r[i][j]);
+			printf("Professor %i ---- Turma %i\n", i, j);
 			int qtd_aulas = 0;
 			printf("         Horarios       \n");
 			for(int  k = 0; k < 5; k++){
@@ -216,7 +354,7 @@ int main(void){
 				}
 				printf("\n");
 			}
-			printf("atualmente dando: %i\n\n", qtd_aulas);
+			printf("\n");
 		}
 	}
 
