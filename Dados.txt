@@ -1,0 +1,2 @@
+n_dias_com_aula 5
+n_horarios_em_um_dia 5

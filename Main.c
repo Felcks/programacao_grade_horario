@@ -22,6 +22,7 @@ int nd = 5; //Número de dias de aula por semana
 
 int w[2][5][5]; //Não preferencia de um professor p por horário H no dia D --> w[p][h][d]
 int r[2][2]; //Número de aulas para a turma T que o professor p tem que atender --> r[p][t]
+int R[2][2]; //Mesmo do de cima sendo que ele fica fixo
 int disp[2][5][5]; //Disponibilidade de um professor p num horário h num dia d --> disp[p][h][d]
 int ad[2][2]; //Número minímo de aulas duplas que um professor p da para uma turma t --> ad[p][t]
 
@@ -83,121 +84,121 @@ int main(void){
 	r[0][1] = 4;
 	r[1][0] = 4;
 	r[1][1] = 6;
-	
-
-
-	while(existeAulaParaAlocar() == 1){
-
-
-	int pu = 0;
-	int tu = 0;
-	float maiorUrgencia = 0;
 
 	for(int i = 0; i < 2; i++){
 		for(int j = 0; j < 2; j++){
-
-
-			if(r[i][j] > 0){ //Se aquele professor da aula pra turma
-				
-				float urgencia = 0;
-				urgencia = r[i][j];
-
-
-				int n_disp = 1;
-				for(int  k = 0; k < 5; k++){
-					for(int y = 0; y < 5; y++){
-						if(x[i][j][k][y] == 0){
-							n_disp += 1;
-						}
-					}
-				}
-
-				urgencia = urgencia / n_disp;
-				if(urgencia > maiorUrgencia){
-					maiorUrgencia = urgencia;
-					pu = i;
-					tu = j;
-				}
-			}
-		}
-	}
-
-	//Agora entra o algoritmo de construção inicial pseudo aleatoria
-	//Vou pegar os 3 horários de aulas que não violam a restrição 2 ou 4
-	/*
-		Vou criar um critério para decidir a melhor aula,
-		1 - Se o professor já tem que comparecer naquele dia É BOM! +5pts --variavel am
-		2 - Se existe uma aula anterior É BOM! +20pts
-		3 - Se viola a regra 4 É RUIM -30pts
-		4 - Tem que ver se o professor tem disponibilidade naquele horario
-		5 - Se ele tem preferência por não dar aula naquele horario -5pts
-	*/
-	while(r[pu][tu] > 0){
-		int mPontuacao = -100;
-		int mDia = 0;
-		int mHora = 0;
-		
-		for(int  k = 0; k < 5; k++){
-			
-			for(int y = 0; y < 5; y++){
-
-				int cPontuacao = 0; //pontuacao atual
-
-				if(am[pu][k] == 1){ //Se ele ja tem que aparecer na escola!
-					cPontuacao += 5;
-				}
-				if(atd[pu][tu][k] >= 2) //Se ja tem duas aulas praquela turma naquele dia
-				{
-					cPontuacao -= 30;
-				}
-
-				//checando se tem aula anterior
-				if(y > 0){
-					if(x[pu][tu][k][y-1] == 1)
-						cPontuacao += 10;
-				}
-
-				//Rodando todos os professores para saber se algum da aula para aquela turma naquele horario
-				for(int a = 0; a < 2; a++){
-					if(x[a][tu][k][y] == 1)
-						cPontuacao -= 500;
-				}
-
-
-				if(cPontuacao > mPontuacao && x[pu][tu][k][y] == 0){
-					mPontuacao = cPontuacao;
-					mDia = k;
-					mHora = y;
-				}
-			}
-		}
-
-		x[pu][tu][mDia][mHora] = 1;
-		atd[pu][tu][mDia] += 1;
-		r[pu][tu] -= 1;
-		disp[pu][mDia][mHora] = 0;
+			R[i][j] = r[i][j];
 		}
 	}
 	
-	/*int alocou = 0;
-	for(int  k = 0; k < 5; k++){
-		if(alocou == 1)
-			break;
-		for(int y = 0; y < 5; y++){
-			if(x[pu][tu][k][y] == 0){
-				x[pu][tu][k][y] = 1;
-				r[pu][tu] -= 1;
-				alocou = 1;
+
+	while(existeAulaParaAlocar() == 1){
+
+		int pu = 0;
+		int tu = 0;
+		float maiorUrgencia = 0;
+
+		int pus[3] = {0, 0, 0};
+		int tus[3] = {0, 0, 0};
+		float mus[3] = {0, 0, 0};
+
+		for(int i = 0; i < 2; i++){
+			for(int j = 0; j < 2; j++){
 
 
-				if(x[pu][tu][k+1][y] == 0){
-					x[pu][tu][k+1][y] = 1;
-					r[pu][tu] -= 1;
+				if(r[i][j] > 0){ //Se aquele professor da aula pra turma
+					
+					float urgencia = 0;
+					urgencia = r[i][j];
+
+
+					int n_disp = 1;
+					for(int  k = 0; k < 5; k++){
+						for(int y = 0; y < 5; y++){
+							if(x[i][j][k][y] == 0){
+								n_disp += 1;
+							}
+						}
+					}
+
+					urgencia = urgencia / n_disp;
+					for(int k = 0; k < 3; k++){
+						if(urgencia > mus[k]){
+
+							float aux_u = mus[k];
+							int aux_pu = pus;
+							int aux_tu = tus;
+
+							mus[k] = urgencia;
+							pus = i;
+							tus = j;
+
+						}
+					}
 				}
-				break;
 			}
 		}
-	}*/
+
+		//Agora entra o algoritmo de construção inicial pseudo aleatoria
+		//Vou pegar os 3 horários de aulas que não violam a restrição 2 ou 4
+		/*
+			Vou criar um critério para decidir a melhor aula,
+			1 - Se o professor já tem que comparecer naquele dia É BOM! +5pts --variavel am
+			2 - Se existe uma aula anterior ou sucessora É BOM! +10pts
+			3 - Se viola a regra 4 É RUIM -30pts
+			4 - Tem que ver se o professor tem disponibilidade naquele horario
+			5 - Se ele tem preferência por não dar aula naquele horario -5pts
+		*/
+		while(r[pu][tu] > 0){
+			int mPontuacao = -100;
+			int mDia = 0;
+			int mHora = 0;
+			
+			for(int  k = 0; k < 5; k++){
+				
+				for(int y = 0; y < 5; y++){
+
+					int cPontuacao = 0; //pontuacao atual
+
+					if(am[pu][k] == 1){ //Se ele ja tem que aparecer na escola!
+						cPontuacao += 5;
+					}
+					if(atd[pu][tu][k] >= 2) //Se ja tem duas aulas praquela turma naquele dia
+					{
+						cPontuacao -= 30;
+					}
+
+					//checando se tem aula anterior
+					if(y > 0){
+						if(x[pu][tu][k][y-1] == 1)
+							cPontuacao += 10;
+					}
+					if(y < 4){
+						if(x[pu][tu][k][y+1] == 1)
+							cPontuacao += 10;
+					}
+
+					//Rodando todos os professores para saber se algum da aula para aquela turma naquele horario
+					for(int a = 0; a < 2; a++){
+						if(x[a][tu][k][y] == 1)
+							cPontuacao -= 500;
+					}
+
+
+					if(cPontuacao > mPontuacao && x[pu][tu][k][y] == 0){
+						mPontuacao = cPontuacao;
+						mDia = k;
+						mHora = y;
+					}
+				}
+			}
+
+			x[pu][tu][mDia][mHora] = 1;
+			atd[pu][tu][mDia] += 1;
+			r[pu][tu] -= 1;
+			disp[pu][mDia][mHora] = 0;
+		}
+	}
 
 	//Printando a variavel de decisão
 	for(int i = 0; i < 2; i++){
