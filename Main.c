@@ -21,7 +21,7 @@ int nh = 5; //Número de horários de aula em um dia D
 int nd = 5; //Número de dias de aula por semana
 
 int w[2][5][5]; //Não preferencia de um professor p por horário H no dia D --> w[p][h][d]
-int r[2][2]; //Número de aulas para a turma T que o professor p tem que atender --> r[p][t]
+int r[2][2]; //Numero de aulas que o professor p da para a turma t --> r[p][t]
 int R[2][2]; //Mesmo do de cima sendo que ele fica fixo
 int disp[2][5][5]; //Disponibilidade de um professor p num horário h num dia d --> disp[p][h][d]
 int ad[2][2]; //Número minímo de aulas duplas que um professor p da para uma turma t --> ad[p][t]
