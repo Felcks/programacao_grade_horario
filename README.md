@@ -11,3 +11,6 @@
 	- Gerar n soluções e aplicar o algoritmo de busca local
 
 - ARTIGO: (parte do artigo já está nas apresentações feitas)
+
+SLIDE Solução Inicial:
+https://docs.google.com/presentation/d/1vUZzvH1FQdzBJwPvQ8QTLjQlk4N27Zl34rDgGvukf3w/edit?usp=sharing
