@@ -1,71 +1,65 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-typedef struct professor{
-	int id;
-	char nome[100];
-}Professor;
-
-typedef struct turma{
-	int id;
-	char nome[100];
-}Turma;
-
-//Variaveis
-Professor* p; //Conjunto com todos os professores
-Turma* t; //Conjunto com todas as turmas
-
-int d[5] = {1, 2, 3, 4, 5}; //Conjunto de todos os dias de aula
-int nh = 5; //Número de horários de aula em um dia D
-int nd = 5; //Número de dias de aula por semana
-
-int w[2][5][5]; //Não preferencia de um professor p por horário H no dia D --> w[p][h][d]
-int r[2][2]; //Numero de aulas que o professor p da para a turma t --> r[p][t]
-int R[2][2]; //Mesmo do de cima sendo que ele fica fixo
-int disp[2][5][5]; //Disponibilidade de um professor p num horário h num dia d --> disp[p][h][d]
-int ad[2][2]; //Número minímo de aulas duplas que um professor p da para uma turma t --> ad[p][t]
-
-int as[2][2][5]; //1 Se o professor p da aula pra turma t no dia da semana d --> as[p][t][d]
-int ac[2][2][5][5]; //1 Se o professor p da aula pra turma t no dia d no horario h e h+1 --> ac[p][t][d][h]
-int am[2][5]; //1 Se o professor p tem aula marcada no dia d --> am[p][d]
-int b2[2][2][5]; //1 Se houver mais de uma aula (p, t) no dia da semana d, não consecutivas --> b2[p][t][d]
-int l[2][5]; //h Se for o ultimo horario  de aula agendado para o professor p no dia d, 0 caso contrario --> l[p][d]
-int f[2][5]; //h se h for o primeiro horario de aula agendado para o professor p no dia d, --> f[p][d]
-int b1[2][5]; //n se for o numero de aulas vagas entre duas aulas lecionadas por p no dia d --> b1[p][d]
-int d2[2][2]; //Numero de vezes que o requerimento de aulas em dias alternados para o par (p, t) não é atendido --> d2[p][t]
-int d3[2][2]; //Numero de vezes que o requerimento de aulas duplas para um par (p, t) não é atendido --> d3[p][t]
-
-int atd[2][2][5]; //n é o numero de vezes que o professor p da aula pra turma t no dia d 
-
-int x[2][2][5][5]; //Variavel de decisao! 1 se o professor p da aula pra turma t no dia d e no horario h --> x[p][t][d][h]
+#include <time.h>
+#include "jsmn.h"
 
 
-void criarProfessores(Professor* p){
 
-	p = malloc(2 * sizeof(Professor));
-	p[0].id = 0;
-	strcpy(p[0].nome, "Marcelo");
-
-	p[1].id = 1;
-	strcpy(p[1].nome, "João");
+/***************** Metodos Padrões *****************/
+static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
+	if (tok->type == JSMN_STRING && (int) strlen(s) == tok->end - tok->start &&
+			strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
+		return 0;
+	}
+	return -1;
 }
 
-void criarTurmas(Turma* t){
+int getIntFromString(char* str, int end, int start){
 
-	t = malloc(2 * sizeof(Turma));
-	t[0].id = 0;
-	strcpy(t[0].nome, "1701");
+	char sub[end - start + 1];
+	sub[end - start] = '\0';
+	strncpy(sub, str, end - start);
+	int number = strtol(sub, NULL, 10);
 
-	t[1].id = 1;
-	strcpy(t[1].nome, "1702");
+	return number;
 }
 
+void getStringFormated(char* str, int end, int start, char* materias){
+
+	materias = (char*)malloc(sizeof(char) * end - start + 1);
+	materias[end - start] = '\0';
+	materias = strncpy(materias, str, end - start);
+}
+
+/***************** Variáveis *****************/
+int nh = 0; //Numero de horários de aula em um dia D
+int nd = 0; //Numero de dias de aula por semana
+int nt = 0; //Numero de turmas
+int np = 0; //Numero de professores
+int nm = 0; //Numero de materias
+int ntrn = 0; //Numero de turnos;
+
+int* p_disciplina; //Disciplina equivalente ao professor p
+char** materias; //Nome das materias
+int** R; //Numero de aulas que o professor p da para a turma t --> r[p][t]
+int** R_total; //Copia do R com os valores de entrada
+int* t_turno; //Turma relacionada ao turno 
+char** t_nomes; //Nome das Turmas
+
+int**** x; //Variavel de decisao! 1 se o professor p da aula pra turma t no dia d e no horario h --> x[p][t][d][h]
+int*** disp; //Disponibilidade de um professor p num horário d num horario h --> disp[p][d][h]
+int*** atd; //n é o numero de vezes que o professor p da aula pra turma t no dia d --> atd[p][t][d]
+int** am; //1 Se o professor p tem aula marcada no dia d --> am[p][d]
+
+int funcao_objetivo(int**** x);
+
+/***************** Metodos Auxiliares *****************/
 int existeAulaParaAlocar(){
 
-	for(int i = 0; i < 2; i++){
-		for(int j = 0; j < 2; j++){
-			if(r[i][j] > 0)
+	for(int i = 0; i < np; i++){
+		for(int j = 0; j < nt; j++){
+			if(R[i][j] > 0)
 				return 1;
 		}
 	}
@@ -73,24 +67,144 @@ int existeAulaParaAlocar(){
 	return 0;
 }
 
+int existeAulaNesseHorario_Professor(int p, int d, int h){
 
-int main(void){
-
-	criarProfessores(p);
-	criarTurmas(t);
-
-	//setando as aulas pra cada turma
-	r[0][0] = 6;
-	r[0][1] = 4;
-	r[1][0] = 4;
-	r[1][1] = 6;
-
-	for(int i = 0; i < 2; i++){
-		for(int j = 0; j < 2; j++){
-			R[i][j] = r[i][j];
+	for(int j = 0; j < nt; j++){
+		if(x[p][j][d][h] != 0){
+			return 1;
 		}
 	}
+
+	return 0;
+}
+
+int existeAulaNesseHorario_Turma(int t, int d, int h){
+
+	for(int i = 0; i < np; i++){
+		if(x[i][t][d][h] != 0)
+			return 1;
+	}
+
+	return 0;
+}
+
+void printar_solucao(int**** x){
+
+	for(int j = 0; j < nt; j++){
+		printf("TURMA %s\n", t_nomes[j]);
+		for(int k = 0; k < nd; k++){
+			for(int y = 0; y < nh; y++){
+				int tem_aula = 0;
+				for(int i = 0; i < np; i++){
+					if(x[i][j][k][y] != 0){
+						tem_aula = 1;
+						printf("%s ", materias[p_disciplina[i]]); //i+1 para o profssor
+					}
+				}
+
+				if(tem_aula == 0){
+					printf("--- ");
+				}
+			}
+			printf("\n");
+		}
+		printf("\n");
+	}
+}
+
+
+/***************** Heurística baseada em pontuação - testes empíricos *****************/
+int pegarMelhorHorario_Professor_Turma(int p, int t, int *mDia, int *mHora, int ignorarConflitoProfessor){
 	
+	int mPontuacao = -999;
+	int alocou = 0;
+
+	int mDias[25];
+	int mHoras[25];
+	int tamanho = 0;
+
+	for(int  k = 0; k < nd; k++){
+				
+		int start = t_turno[t] * (nh/ntrn);
+		int end = (t_turno[t]+1) * (nh/ntrn);
+		for(int y = start; y < end; y++){
+
+			int cPontuacao = 0; //pontuacao atual
+
+			if(am[p][k] == 1){ //Se ele ja tem que aparecer na escola!
+				cPontuacao += 10;
+			}
+			
+			//Professores com 6 aulas gostam de aulas triplas
+			if(R_total[p][t] >= 6){
+				if(atd[p][t][k] >= 3) //Se ja tem três aulas praquela turma naquele dia
+				{
+					cPontuacao -= 30;
+				}
+			}
+			else{ //professores com menos de 6 aulas preferem aulas duplas
+				if(atd[p][t][k] >= 2) //Se ja tem duas aulas praquela turma naquele dia
+				{
+					cPontuacao -= 30;
+				}
+			}
+
+			//checando se tem aula anterior
+			if(y > 0){
+				if(x[p][t][k][y-1] == 1)
+					cPontuacao += 10;
+			}
+			if(y < 4){
+				if(x[p][t][k][y+1] == 1)
+					cPontuacao += 10;
+			}
+
+			if(x[p][t][k][y] == 0 && !existeAulaNesseHorario_Turma(t, k, y) && (!existeAulaNesseHorario_Professor(p, k, y) || ignorarConflitoProfessor)){
+
+				if(cPontuacao == mPontuacao){
+					mDias[tamanho] = k;
+					mHoras[tamanho] = y;
+					tamanho++;
+				}
+				else if(cPontuacao > mPontuacao){
+					
+					alocou = 1;
+
+					tamanho = 0;
+					for(int i = 0; i < 25; i++){
+						mDias[i] = 0;
+						mHoras[i] = 0;
+					}
+					mDias[0] = k;
+					mHoras[0] = y;
+					tamanho = 1;
+					mPontuacao = cPontuacao;
+				}
+			}
+
+			/*if(cPontuacao > mPontuacao && x[p][t][k][y] == 0 && !existeAulaNesseHorario_Turma(t, k, y) && (!existeAulaNesseHorario_Professor(p, k, y) || ignorarConflitoProfessor)){
+				mPontuacao = cPontuacao;
+				*mDia = k;
+				*mHora = y;
+				alocou = 1;
+			}*/
+		}
+	}
+
+		if(tamanho >= 1){
+			//printf("%i\n", tamanho);
+			int sorted = rand() % tamanho;
+			*mDia = mDias[sorted];
+			*mHora = mHoras[sorted];
+
+		}
+
+	return alocou;
+
+}
+
+/***************** Construção de solução inicial *****************/
+void solucao_inicial(){
 
 	while(existeAulaParaAlocar() == 1){
 
@@ -98,24 +212,22 @@ int main(void){
 		int tu = 0;
 		float maiorUrgencia = 0;
 
-		int pus[3] = {0, 0, 0};
-		int tus[3] = {0, 0, 0};
-		float mus[3] = {0, 0, 0};
+		int array_pu[3] = {0, 0, 0};
+		int array_tu[3] = {0, 0, 0};
+		float array_mu[3] = {0, 0, 0};
 
-		for(int i = 0; i < 2; i++){
-			for(int j = 0; j < 2; j++){
+		for(int i = 0; i < np; i++){
+			for(int j = 0; j < nt; j++){
 
 
-				if(r[i][j] > 0){ //Se aquele professor da aula pra turma
-					
+				if(R[i][j] > 0){
 					float urgencia = 0;
-					urgencia = r[i][j];
-
+					urgencia = R[i][j];
 
 					int n_disp = 1;
-					for(int  k = 0; k < 5; k++){
-						for(int y = 0; y < 5; y++){
-							if(x[i][j][k][y] == 0){
+					for(int  k = 0; k < nd; k++){
+						for(int y = 0; y < nh; y++){
+							if(x[i][j][k][y] == 0 && !existeAulaNesseHorario_Turma(j, k, y) && !existeAulaNesseHorario_Professor(i, k, y)){
 								n_disp += 1;
 							}
 						}
@@ -123,21 +235,32 @@ int main(void){
 
 					urgencia = urgencia / n_disp;
 					for(int k = 0; k < 3; k++){
-						if(urgencia > mus[k]){
+						if(urgencia > array_mu[k]){
+							for(int y = 2; y > k; y--){
+									array_mu[y] = array_mu[y-1];
+									array_pu[y] = array_pu[y-1];
+									array_tu[y] = array_tu[y-1];
+							}
 
-							float aux_u = mus[k];
-							int aux_pu = pus;
-							int aux_tu = tus;
-
-							mus[k] = urgencia;
-							pus = i;
-							tus = j;
-
+							array_mu[k] = urgencia;
+							array_pu[k] = i;
+							array_tu[k] = j;
+							break;
 						}
 					}
 				}
 			}
 		}
+
+		int qtd = 0;
+		for(int i = 0; i < 3; i++){
+			if(array_mu[i] != 0)
+				qtd++;
+		}
+
+		int sorted = rand() % qtd;
+		pu = array_pu[sorted];
+		tu = array_tu[sorted];
 
 		//Agora entra o algoritmo de construção inicial pseudo aleatoria
 		//Vou pegar os 3 horários de aulas que não violam a restrição 2 ou 4
@@ -149,76 +272,87 @@ int main(void){
 			4 - Tem que ver se o professor tem disponibilidade naquele horario
 			5 - Se ele tem preferência por não dar aula naquele horario -5pts
 		*/
-		while(r[pu][tu] > 0){
-			int mPontuacao = -100;
+		while(R[pu][tu] > 0){
+
 			int mDia = 0;
 			int mHora = 0;
-			
-			for(int  k = 0; k < 5; k++){
-				
-				for(int y = 0; y < 5; y++){
+			int ok = pegarMelhorHorario_Professor_Turma(pu, tu, &mDia, &mHora, 0);
 
-					int cPontuacao = 0; //pontuacao atual
+			if(ok == 0){
 
-					if(am[pu][k] == 1){ //Se ele ja tem que aparecer na escola!
-						cPontuacao += 5;
-					}
-					if(atd[pu][tu][k] >= 2) //Se ja tem duas aulas praquela turma naquele dia
-					{
-						cPontuacao -= 30;
-					}
+				//tenho que alocar no primeiro tempo vago dessa turma idependente das restrições
 
-					//checando se tem aula anterior
-					if(y > 0){
-						if(x[pu][tu][k][y-1] == 1)
-							cPontuacao += 10;
-					}
-					if(y < 4){
-						if(x[pu][tu][k][y+1] == 1)
-							cPontuacao += 10;
-					}
-
-					//Rodando todos os professores para saber se algum da aula para aquela turma naquele horario
-					for(int a = 0; a < 2; a++){
-						if(x[a][tu][k][y] == 1)
-							cPontuacao -= 500;
-					}
-
-
-					if(cPontuacao > mPontuacao && x[pu][tu][k][y] == 0){
-						mPontuacao = cPontuacao;
-						mDia = k;
-						mHora = y;
-					}
-				}
+				//printf("nao alocou %i %i\n",pu, tu);
+				//printf("dia%i horario%i \n", mDia, mHora );
+				pegarMelhorHorario_Professor_Turma(pu, tu, &mDia, &mHora, 1);
+				//printf("dia%i horario%i \n", mDia, mHora );
+				//printf("end %i\n", end);
 			}
 
+			//printf("p:%i t:%i d%i h%i \n",pu, tu, mDia, mHora );
 			x[pu][tu][mDia][mHora] = 1;
-			atd[pu][tu][mDia] += 1;
-			r[pu][tu] -= 1;
+			R[pu][tu] -= 1;
+						//printf("%i %i %i\n", R[pu][tu], pu, tu);
 			disp[pu][mDia][mHora] = 0;
+			atd[pu][tu][mDia] += 1;
+			am[pu][mDia] = 1;
 		}
 	}
 
-	//Printando a variavel de decisão
-	for(int i = 0; i < 2; i++){
-		printf("Professor %i\n",i);
-		for(int j = 0; j < 2; j++){
-			printf("Turma %i\n", j);
-			printf("Tem que dar: %i \n", r[i][j]);
-			int qtd_aulas = 0;
-			printf("         Horarios       \n");
-			for(int  k = 0; k < 5; k++){
-				printf("dia %i = ", k);
-				for(int y = 0; y < 5; y++){
-					printf("%i ", x[i][j][k][y]);
-					qtd_aulas += x[i][j][k][y];
+	
+	printar_solucao(x);
+	funcao_objetivo(x);
+}
+
+
+/***************** Função Objetivo *****************/
+int funcao_objetivo(int**** x){
+
+	/* função objetivo
+	- Conferir se a configuração das aulas está da melhor maneira. Exemplo 6 tempos da 3,3. 4 Tempos 2,2. 3 Tempos 2,1
+	- Conferir quantos horarios a não preferência foi desrespeitada
+	- Conferir quantos horarios que ele não poderia foi desrespeitado 
+	- Conferir a quantidade de vezes que ele vai para a escola na semana
+	*/
+	int pontuacao_inicial = 100000;
+	int pontuacao_por_dia_na_escola = -100;
+	int pontuacao_por_indisponibilidade = -50;
+	int pontuacao_por_nao_preferencia = -10;
+
+	int pontuacao = pontuacao_inicial;
+	for(int i = 0; i < np; i++){
+		for(int k = 0; k < nd; k++){
+			pontuacao += am[i][k] * pontuacao_por_dia_na_escola;
+		}
+
+		/*for(j = 0; j < nt; j++){
+			
+			if(R_total[i][j] > 0){
+
+				int qtd_melhor_pontuacao = 0;
+				int qtd_2melhor_pontuacao = 0;
+				int qtd_3melhor_pontuacao = 0;
+				if(R_total[i][j] == 6){
+					qtd_melhor_pontuacao = 3;
 				}
-				printf("\n");
+
+				for(k = 0; k < nd; k++){
+
+
+					pontuacao +=  
+				}
 			}
-			printf("atualmente dando: %i\n\n", qtd_aulas);
-		}
+		}*/
 	}
 
+	return pontuacao;
+}
+
+
+int main(void){
+	solucao_inicial();
+
+	return 0;
 
 }
+
