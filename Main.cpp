@@ -64,7 +64,7 @@ int main(int argc, char const *argv[])
 	best = alocarMatrizSolucao();
 	s = alocarMatrizSolucao();
 
-	double alpha = 1.0;
+	double alpha = 0.5;
 	if(argc > 1) alpha = atof(argv[1]);
 
 	if(argc > 2) no_improvement_max = atoi(argv[2]);
@@ -77,6 +77,7 @@ int main(int argc, char const *argv[])
 void grasp(int alpha){
 
 	solucao_inicial(best, alpha);
+	//reparo
 	int custo = funcao_objetivo(best);
 	cout << custo;
 
@@ -85,6 +86,7 @@ void grasp(int alpha){
 	while(!stopCondition()){
 
 		solucao_inicial(s, alpha);
+		//reparo
 		busca_local(s);
 		int custo_s = funcao_objetivo(s);
 
@@ -314,13 +316,14 @@ int funcao_objetivo(int**** x){
 
 	/* função objetivo
 	- Conferir se a configuração das aulas está da melhor maneira. Exemplo 6 tempos da 3,3. 4 Tempos 2,2. 3 Tempos 2,1
-	- Conferir quantos horarios a não preferência foi desrespeitada
-	- Conferir quantos horarios que ele não poderia foi desrespeitado 
-	- Conferir a quantidade de vezes que ele vai para a escola na semana
+	- Conferir quantos horarios de não preferência foi desrespeitada
+	- Conferir quantos horarios que ele não poderia foi desrespeitado -- não acontece
+	- Conferir a quantidade de vezes que ele vai para a escola na semana -- OK
+	- Conferir buracos entre as aulas do professor
 	*/
 	int pontuacao_inicial = 10000;
 	int pontuacao_por_dia_na_escola = -1000;
-	int pontuacao_por_indisponibilidade = -50;
+	//int pontuacao_por_indisponibilidade = -50;
 	int pontuacao_por_nao_preferencia = -10;
 
 	int pontuacao = pontuacao_inicial;
