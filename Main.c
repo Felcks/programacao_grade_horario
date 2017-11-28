@@ -53,6 +53,7 @@ int*** atd; //n é o numero de vezes que o professor p da aula pra turma t no di
 int** am; //1 Se o professor p tem aula marcada no dia d --> am[p][d]
 
 int funcao_objetivo(int**** x);
+int carregar_dados();
 
 /***************** Metodos Auxiliares *****************/
 int existeAulaParaAlocar(){
@@ -90,6 +91,7 @@ int existeAulaNesseHorario_Turma(int t, int d, int h){
 
 void printar_solucao(int**** x){
 
+	printf("%i\n", nt);
 	for(int j = 0; j < nt; j++){
 		printf("TURMA %s\n", t_nomes[j]);
 		for(int k = 0; k < nd; k++){
@@ -112,6 +114,205 @@ void printar_solucao(int**** x){
 	}
 }
 
+int carregar_dados(){
+
+	srand(time(NULL));
+
+	char url[] = "Dados.json";
+	char ch;
+	FILE *file;
+	char json_string[10000];
+	
+
+	file = fopen(url, "r");
+	if(file == NULL)
+		printf("file é null\n");
+	else{
+		int i = 0;
+		while( (ch=fgetc(file)) != EOF){
+			json_string[i] = ch;
+			i++;
+		}
+	}
+
+	//printf("%i\n", strlen(json_string));
+	fclose(file);
+
+	int i;
+	int r;
+	jsmn_parser p;
+	jsmntok_t t[1024]; /* We expect no more than 128 tokens */
+
+	jsmn_init(&p);
+	r = jsmn_parse(&p, json_string, strlen(json_string), t, sizeof(t)/sizeof(t[0]));
+	if (r < 0) {
+		printf("Failed to parse JSON: %d\n", r);
+		return 1;
+	}
+
+	/* Assume the top-level element is an object */
+	if (r < 1 || t[0].type != JSMN_OBJECT) {
+		printf("Object expected\n");
+		return 1;
+	}
+
+	
+	for (i = 1; i < r; i++) {
+		if (jsoneq(json_string, &t[i], "n_dias_com_aula") == 0) {
+
+			nd = getIntFromString(json_string + t[i+1].start, t[i+1].end, t[i+1].start);
+			i++;
+		}
+		else if (jsoneq(json_string, &t[i], "n_horarios_por_dia") == 0) {
+
+			nh = getIntFromString(json_string + t[i+1].start, t[i+1].end, t[i+1].start);
+
+			i++;
+		}
+		else if (jsoneq(json_string, &t[i], "n_turmas") == 0) {
+
+			nt = getIntFromString(json_string + t[i+1].start, t[i+1].end, t[i+1].start);
+			i++;
+		}
+		else if(jsoneq(json_string, &t[i], "n_materias") == 0){
+			nm = getIntFromString(json_string + t[i+1].start, t[i+1].end, t[i+1].start);
+			materias = (char**)malloc(sizeof(char*) * nm);
+			i++;
+
+		}
+		else if (jsoneq(json_string, &t[i], "n_professores") == 0) {
+
+			np = getIntFromString(json_string + t[i+1].start, t[i+1].end, t[i+1].start);
+			R = (int**)malloc(sizeof(int*) * np);
+			R_total = (int**)malloc(sizeof(int*) * np);
+			for(int j = 0; j < np; j++){
+				R[j] = malloc(sizeof(int) * nt);
+				R_total[j] = malloc(sizeof(int) * nt);
+			}
+			i++;
+		}
+		else if(jsoneq(json_string, &t[i], "n_turnos") == 0) {
+
+			ntrn = getIntFromString(json_string + t[i+1].start, t[i+1].end, t[i+1].start);	
+			i++;
+		}
+		else if (jsoneq(json_string, &t[i], "materias") == 0) {
+			
+			int j;
+			if (t[i+1].type != JSMN_ARRAY) {
+				continue; /* We expect groups to be an array of strings */
+			}
+			for (j = 0; j < t[i+1].size; j++) {
+				jsmntok_t *g = &t[i+j+2];
+
+				materias[j] = (char*)malloc(sizeof(char) * (g->end - g->start) + 1);
+
+				strncpy(materias[j], json_string + g->start, g->end - g->start);
+				materias[j][g->end - g->start] = '\0';
+				printf("%s\n", materias[j]);
+				//printf("  * %.*s\n", g->end - g->start, json_string + g->start);
+				//getStringFormated(json_string + g->start, g->end, g->start, materias[j]);
+			}
+			i += t[i+1].size + 1;
+		}
+		else if (jsoneq(json_string, &t[i], "aula_professor_turma") == 0) {
+			int j;
+			if (t[i+1].type != JSMN_ARRAY) {
+				continue; /* We expect groups to be an array of strings */
+			}
+			for (j = 0; j < t[i+1].size; j++) {
+				jsmntok_t *g = &t[i+j+2];
+				int k;
+
+				int count = 0;
+				for (k = 0; k < nt; k++) {
+					jsmntok_t *f = &t[i+(j*(np-2))+k+3];
+					if(f->end - f->start <= 2){
+						printf("%i\n", getIntFromString(json_string + f->start, f->end, f->start));
+						R[j][k - count] = getIntFromString(json_string + f->start, f->end, f->start);
+					}
+					else
+						count++;
+				}
+			}
+			i += t[i+1].size + 1;
+		}  
+		else if (jsoneq(json_string, &t[i], "professor_disciplina") == 0) {
+
+			p_disciplina = (int*)malloc(sizeof(int) * np);
+			int j;
+			if (t[i+1].type != JSMN_ARRAY) {
+				continue;
+			}
+			for (j = 0; j < t[i+1].size; j++) {
+				jsmntok_t *g = &t[i+j+2];
+				
+				p_disciplina[j] = getIntFromString(json_string + g->start, g->end, g->start);
+				//printf("  * %.*s\n", g->end - g->start, json_string + g->start);
+				//getStringFormated(json_string + g->start, g->end, g->start, materias[j]);
+			}
+			i += t[i+1].size + 1;
+		}
+		else if (jsoneq(json_string, &t[i], "turma_turno") == 0) {
+
+
+			t_turno = (int*)malloc(sizeof(int) * nt);
+			int j;
+			if (t[i+1].type != JSMN_ARRAY) {
+				continue;
+			}
+			for (j = 0; j < t[i+1].size; j++) {
+				jsmntok_t *g = &t[i+j+2];
+				
+				t_turno[j] = getIntFromString(json_string + g->start, g->end, g->start);
+			}
+			i += t[i+1].size + 1;
+		}
+		else {
+			//printf("Unexpected key: %.*s\n", t[i].end-t[i].start,
+			//		json_string + t[i].start);
+		}
+	}
+
+	am = (int**)malloc(sizeof(int*) * np);
+	for(i = 0; i < np; i++){
+		am[i] = (int*)malloc(sizeof(int) * nd);
+	}
+
+
+	x = (int****)malloc(sizeof(int***) * np);
+	for(i = 0; i < np; i++){
+		x[i] = (int***)malloc(sizeof(int**) * nt);
+		for(int j = 0; j < nt; j++){
+			x[i][j] = (int**)malloc(sizeof(int*) * nd);
+			for(int k = 0; k < nd; k++){
+				x[i][j][k] = (int*)malloc(sizeof(int) * nh);
+				for(int y = 0; y < nh; y++){
+					x[i][j][k][y] = 0;
+				}
+			}
+		}
+	}
+
+	disp = (int***)malloc(sizeof(int**) * np);
+	for(i = 0; i < np; i++){
+		disp[i] = (int**)malloc(sizeof(int*) * nd);
+		for(int k = 0; k < nd; k++){
+			disp[i][k] = (int*)malloc(sizeof(int) * nh);
+			for(int y = 0; y < nh; y++){
+				disp[i][k][y] = 1;
+			}
+		}
+	}
+
+	atd = (int***)malloc(sizeof(int**) * np);
+	for(i = 0; i < np; i++){
+		atd[i] = (int**)malloc(sizeof(int*) * nt);
+		for(int j = 0; j < nt; j++)
+			atd[i][j] = (int*)malloc(sizeof(int) * nd);
+	}
+
+}
 
 /***************** Heurística baseada em pontuação - testes empíricos *****************/
 int pegarMelhorHorario_Professor_Turma(int p, int t, int *mDia, int *mHora, int ignorarConflitoProfessor){
@@ -123,10 +324,13 @@ int pegarMelhorHorario_Professor_Turma(int p, int t, int *mDia, int *mHora, int 
 	int mHoras[25];
 	int tamanho = 0;
 
+
 	for(int  k = 0; k < nd; k++){
 				
 		int start = t_turno[t] * (nh/ntrn);
+
 		int end = (t_turno[t]+1) * (nh/ntrn);
+
 		for(int y = start; y < end; y++){
 
 			int cPontuacao = 0; //pontuacao atual
@@ -149,6 +353,8 @@ int pegarMelhorHorario_Professor_Turma(int p, int t, int *mDia, int *mHora, int 
 				}
 			}
 
+
+
 			//checando se tem aula anterior
 			if(y > 0){
 				if(x[p][t][k][y-1] == 1)
@@ -158,6 +364,8 @@ int pegarMelhorHorario_Professor_Turma(int p, int t, int *mDia, int *mHora, int 
 				if(x[p][t][k][y+1] == 1)
 					cPontuacao += 10;
 			}
+
+
 
 			if(x[p][t][k][y] == 0 && !existeAulaNesseHorario_Turma(t, k, y) && (!existeAulaNesseHorario_Professor(p, k, y) || ignorarConflitoProfessor)){
 
@@ -191,6 +399,7 @@ int pegarMelhorHorario_Professor_Turma(int p, int t, int *mDia, int *mHora, int 
 		}
 	}
 
+
 		if(tamanho >= 1){
 			//printf("%i\n", tamanho);
 			int sorted = rand() % tamanho;
@@ -199,12 +408,15 @@ int pegarMelhorHorario_Professor_Turma(int p, int t, int *mDia, int *mHora, int 
 
 		}
 
+
+
 	return alocou;
 
 }
 
 /***************** Construção de solução inicial *****************/
 void solucao_inicial(){
+
 
 	while(existeAulaParaAlocar() == 1){
 
@@ -251,7 +463,6 @@ void solucao_inicial(){
 				}
 			}
 		}
-
 		int qtd = 0;
 		for(int i = 0; i < 3; i++){
 			if(array_mu[i] != 0)
@@ -272,13 +483,20 @@ void solucao_inicial(){
 			4 - Tem que ver se o professor tem disponibilidade naquele horario
 			5 - Se ele tem preferência por não dar aula naquele horario -5pts
 		*/
+
+
+
+
 		while(R[pu][tu] > 0){
 
 			int mDia = 0;
 			int mHora = 0;
-			int ok = pegarMelhorHorario_Professor_Turma(pu, tu, &mDia, &mHora, 0);
 
+			int ok = pegarMelhorHorario_Professor_Turma(pu, tu, &mDia, &mHora, 0);
+			//printf("oi %i %i\n", pu, tu);
+			
 			if(ok == 0){
+
 
 				//tenho que alocar no primeiro tempo vago dessa turma idependente das restrições
 
@@ -350,8 +568,8 @@ int funcao_objetivo(int**** x){
 
 
 int main(void){
+	carregar_dados();
 	solucao_inicial();
-
 	return 0;
 
 }
