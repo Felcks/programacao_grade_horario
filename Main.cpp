@@ -34,22 +34,26 @@ int** am; //1 Se o professor p tem aula marcada no dia d --> am[p][d]
 
 int no_improvement_count = 0;
 int no_improvement_max = 100;
-/***************** Variáveis *****************/
+/***************** Variáveis FIM *****************/
 
 /***************** Escopo de Funções *****************/
 void carregarDados();
 void alocarAuxiliares();
+void limparAuxiliares();
+void limparSolucao(int**** x);
 int**** alocarMatrizSolucao();
 void grasp(int alpha);
-void solucao_inicial(int**** x);
+void solucao_inicial(int**** x, int alpha);
+void busca_local(int**** x);
 bool stopCondition();
 int pegarMelhorHorario_Professor_Turma(int p, int t, int *mDia, int *mHora, int ignorarConflitoProfessor, int**** x);
+int funcao_objetivo(int**** x);
 
 int existeAulaParaAlocar();
 int existeAulaNesseHorario_Professor(int p, int d, int h, int**** x);
 int existeAulaNesseHorario_Turma(int t, int d, int h, int**** x);
 void printar_solucao(int**** x);
-
+void copiar_solucao(int**** s, int**** best);
 /***************** Escopo de Funções *****************/
 
 
@@ -72,17 +76,26 @@ int main(int argc, char const *argv[])
 
 void grasp(int alpha){
 
-	solucao_inicial(best);
-	
-	//reparar solucao
-	/*while(stopCondition()){
+	solucao_inicial(best, alpha);
+	int custo = funcao_objetivo(best);
+	cout << custo;
 
-		solucao_inicial(s);
-		// buscaLocal
-		// if s <  best
-		// best = s
-	}*/
-	printf("a\n");
+	limparAuxiliares();
+
+	while(!stopCondition()){
+
+		solucao_inicial(s, alpha);
+		busca_local(s);
+		int custo_s = funcao_objetivo(s);
+
+		if(custo_s > custo){
+			custo = custo_s;
+			no_improvement_count = 0;
+			copiar_solucao(s, best);
+		}
+		limparAuxiliares();
+		limparSolucao(s);
+	}
 }
 
 bool stopCondition(){
@@ -93,7 +106,7 @@ bool stopCondition(){
 
 
 /***************** Construção de solução inicial *****************/
-void solucao_inicial(int**** x){
+void solucao_inicial(int**** x, int alpha){
 
 
 	while(existeAulaParaAlocar() == 1){
@@ -291,6 +304,53 @@ int pegarMelhorHorario_Professor_Turma(int p, int t, int *mDia, int *mHora, int 
 
 }
 
+/***************** Busca Local *********************/
+void busca_local(int**** x){
+
+}
+
+/***************** Função Objetivo *****************/
+int funcao_objetivo(int**** x){
+
+	/* função objetivo
+	- Conferir se a configuração das aulas está da melhor maneira. Exemplo 6 tempos da 3,3. 4 Tempos 2,2. 3 Tempos 2,1
+	- Conferir quantos horarios a não preferência foi desrespeitada
+	- Conferir quantos horarios que ele não poderia foi desrespeitado 
+	- Conferir a quantidade de vezes que ele vai para a escola na semana
+	*/
+	int pontuacao_inicial = 10000;
+	int pontuacao_por_dia_na_escola = -1000;
+	int pontuacao_por_indisponibilidade = -50;
+	int pontuacao_por_nao_preferencia = -10;
+
+	int pontuacao = pontuacao_inicial;
+	for(int i = 0; i < np; i++){
+		for(int k = 0; k < nd; k++){
+			pontuacao += am[i][k] * pontuacao_por_dia_na_escola;
+		}
+
+		/*for(j = 0; j < nt; j++){
+			
+			if(R_total[i][j] > 0){
+
+				int qtd_melhor_pontuacao = 0;
+				int qtd_2melhor_pontuacao = 0;
+				int qtd_3melhor_pontuacao = 0;
+				if(R_total[i][j] == 6){
+					qtd_melhor_pontuacao = 3;
+				}
+
+				for(k = 0; k < nd; k++){
+
+
+					pontuacao +=  
+				}
+			}
+		}*/
+	}
+
+	return pontuacao;
+}
 
 /***************** Metodos Auxiliares *****************/
 int existeAulaParaAlocar(){
@@ -349,6 +409,19 @@ void printar_solucao(int**** x){
 			printf("\n");
 		}
 		printf("\n");
+	}
+}
+
+void copiar_solucao(int**** s, int**** best){
+
+	for(int i = 0; i < np; i++){
+		for(int j = 0; j < nt; j++){
+			for(int k = 0; k < nd; k++){
+				for(int y = 0; y < nh; y++){
+					best[i][j][k][y] = s[i][j][k][y];
+				}
+			}
+		}
 	}
 }
 /***************** Metodos Auxiliares FIM *****************/
@@ -426,10 +499,47 @@ void alocarAuxiliares(){
 	for(int i = 0; i < np; i++){
 		am[i] = (int*)calloc(nd, sizeof(int));
 	}
+}
 
-//int*** disp; //Disponibilidade de um professor p num horário d num horario h --> disp[p][d][h]
-//int*** atd; //n é o numero de vezes que o professor p da aula pra turma t no dia d --> atd[p][t][d]
-//int** am; //1 Se o professor p tem aula marcada no dia d --> am[p][d]
+void limparAuxiliares(){
+
+	//TODO copiar de um disp_normal (que seria o disp padrão lido do JSON)
+	for(int i = 0; i < np; i++){
+		for(int k = 0; k < nd; k++){
+			for(int y = 0; y < nh; y++)
+				disp[i][k][y] = 0;
+		}
+	}
+
+	for(int i = 0; i < np; i++){
+		for(int j = 0; j < nt; j++){
+			for(int k = 0; k < nd; k++)
+				atd[i][j][k] = 0;
+		}
+	}
+
+	for(int i = 0; i < np; i++){
+		for(int k = 0; k < nd; k++)
+			am[i][k] = 0;
+	}
+
+	for(int i = 0; i < np; i++){
+		for(int j = 0; j < nt; j++){
+			R[i][j] = R_total[i][j];
+		}
+	}
+}
+
+void limparSolucao(int**** s){
+	for(int i = 0; i < np; i++){
+		for(int j = 0; j < nt; j++){
+			for(int k = 0; k < nd; k++){
+				for(int y = 0; y < nh; y++){
+					s[i][j][k][y] = 0;
+				}
+			}
+		}
+	}
 }
 
 int**** alocarMatrizSolucao(){
