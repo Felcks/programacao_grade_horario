@@ -48,7 +48,8 @@ int* t_turno; //Turma relacionada ao turno
 char** t_nomes; //Nome das Turmas
 
 int**** x; //Variavel de decisao! 1 se o professor p da aula pra turma t no dia d e no horario h --> x[p][t][d][h]
-int*** disp; //Disponibilidade de um professor p num horário d num horario h --> disp[p][d][h]
+int*** disp; //Disponibilidade de um professor p num dia d num horario h --> disp[p][d][h]
+int*** npref; //Nao preferencia de um professor p num dia d num horario h --> npref[p][d][h]
 int*** atd; //n é o numero de vezes que o professor p da aula pra turma t no dia d --> atd[p][t][d]
 int** am; //1 Se o professor p tem aula marcada no dia d --> am[p][d]
 
@@ -227,7 +228,7 @@ int carregar_dados(){
 				int count = 0;
 				for (k = 0; k < nt; k++) {
 					jsmntok_t *f = &t[i+(j*(np-2))+k+3];
-					if(f->end - f->start <= 2){
+					if(f->end - f->start <=	 2){
 						printf("%i\n", getIntFromString(json_string + f->start, f->end, f->start));
 						R[j][k - count] = getIntFromString(json_string + f->start, f->end, f->start);
 					}
@@ -529,19 +530,18 @@ int funcao_objetivo(int**** x){
 	/* função objetivo
 	- Conferir se a configuração das aulas está da melhor maneira. Exemplo 6 tempos da 3,3. 4 Tempos 2,2. 3 Tempos 2,1
 	- Conferir quantos horarios a não preferência foi desrespeitada
-	- Conferir quantos horarios que ele não poderia foi desrespeitado 
-	- Conferir a quantidade de vezes que ele vai para a escola na semana
+	- Conferir quantos horarios que ele da aula duas vezes 
+	- Conferir a quantidade de vezes que ele vai para a escola na semana - OK
 	*/
 	int pontuacao_inicial = 100000;
-	int pontuacao_por_dia_na_escola = -100;
-	int pontuacao_por_indisponibilidade = -50;
-	int pontuacao_por_nao_preferencia = -10;
+	int pontuacao_por_dia_na_escola = -1000;
+	int pontuacao_por_indisponibilidade = -5000;
+	int pontuacao_por_nao_preferencia = -1000;
 
 	int pontuacao = pontuacao_inicial;
-	for(int i = 0; i < np; i++){
-		for(int k = 0; k < nd; k++){
-			pontuacao += am[i][k] * pontuacao_por_dia_na_escola;
-		}
+
+	
+
 
 		/*for(j = 0; j < nt; j++){
 			

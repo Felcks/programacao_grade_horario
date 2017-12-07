@@ -28,12 +28,13 @@ vector<string> horarios; //Horários da escola
 
 int**** best; //Variavel de decisao! 1 se o professor p da aula pra turma t no dia d e no horario h --> x[p][t][d][h]
 int**** s; //faz a função do s'.
-int*** disp; //Disponibilidade de um professor p num horário d num horario h --> disp[p][d][h]
+int*** disp; //Disponibilidade de um professor p num dia d num horario h --> disp[p][d][h]; 1 = não disponpivel
+int*** npref; //Nao preferencia de um professor p num dia d num horario h --> npref[p][d][h]; 1 = não preferência
 int*** atd; //n é o numero de vezes que o professor p da aula pra turma t no dia d --> atd[p][t][d]
 int** am; //1 Se o professor p tem aula marcada no dia d --> am[p][d]
 
 int no_improvement_count = 0;
-int no_improvement_max = 100;
+int no_improvement_max = 1;
 /***************** Variáveis FIM *****************/
 
 /***************** Escopo de Funções *****************/
@@ -89,8 +90,9 @@ void grasp(int alpha){
 		//reparo
 		busca_local(s);
 		int custo_s = funcao_objetivo(s);
+		cout << custo_s << "\n";
 
-		if(custo_s > custo){
+		if(custo_s < custo){
 			custo = custo_s;
 			no_improvement_count = 0;
 			copiar_solucao(s, best);
@@ -98,6 +100,8 @@ void grasp(int alpha){
 		limparAuxiliares();
 		limparSolucao(s);
 	}
+
+	cout << custo << "\n";
 }
 
 bool stopCondition(){
@@ -309,6 +313,46 @@ int pegarMelhorHorario_Professor_Turma(int p, int t, int *mDia, int *mHora, int 
 /***************** Busca Local *********************/
 void busca_local(int**** x){
 
+	int mp = 0;
+	int mt = 0;
+	int md = 0;
+	int mh = 0;
+
+	int custo = funcao_objetivo(x);
+
+	for(int p = 0; p < np; p++){
+		cout << "a";
+		for(int t = 0; t < nt; t++){
+			for(int d = 0; d < nd; d++){
+				for(int h = 0; h < nh; h++){
+
+					int valor = x[p][t][d][h];
+
+					for(int i = 0; i < np; i++){
+						for(int j = 0; j < nt; j++){
+							for(int k = 0; k < nd; k++){
+								for(int y = 0; y < nh; y++){
+									int salvo = x[i][j][k][y];
+									x[p][t][d][h] = salvo;
+									x[i][j][k][y] = valor;
+
+									int custo_s = funcao_objetivo(x);
+									if(custo_s > custo){
+										x[p][t][d][h] = valor;
+										x[i][j][k][y] = salvo;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	
+
+			
 }
 
 /***************** Função Objetivo *****************/
@@ -316,21 +360,82 @@ int funcao_objetivo(int**** x){
 
 	/* função objetivo
 	- Conferir se a configuração das aulas está da melhor maneira. Exemplo 6 tempos da 3,3. 4 Tempos 2,2. 3 Tempos 2,1
-	- Conferir quantos horarios de não preferência foi desrespeitada
-	- Conferir quantos horarios que ele não poderia foi desrespeitado -- não acontece
+	- Conferir quantos horarios de não preferência foi desrespeitada -- OK
+	- Conferir quantos horarios que ele não poderia foi desrespeitado -- OK
 	- Conferir a quantidade de vezes que ele vai para a escola na semana -- OK
-	- Conferir buracos entre as aulas do professor
+	- Conferir buracos entre as aulas do professor -- OK
+	- Conferir se ocorre o professor da duas aulas no mesmo horario professor -- OK
 	*/
-	int pontuacao_inicial = 10000;
-	int pontuacao_por_dia_na_escola = -1000;
-	//int pontuacao_por_indisponibilidade = -50;
-	int pontuacao_por_nao_preferencia = -10;
 
-	int pontuacao = pontuacao_inicial;
+	int custo = 0;
+	int custo_por_dia_na_escola = 1000; //posso usar potencia 2^10 pro primeiro 2^11 pro segundo dia etc...
+	int custo_por_indisponibilidade = 5000;
+	int custo_por_nao_preferencia = 1000;
+	int custo_por_buraco_entre_aulas = 100;
+	int custo_por_aula_mesmo_horario = 5000;
+
+	//Custo por dia na escola
 	for(int i = 0; i < np; i++){
 		for(int k = 0; k < nd; k++){
-			pontuacao += am[i][k] * pontuacao_por_dia_na_escola;
+			custo += am[i][k] * custo_por_dia_na_escola;
 		}
+	}
+
+	//Custo por aula em horário indisponível e não preferência
+	for(int i = 0; i < np; i++){
+		for(int j = 0; j < nt; j++){
+			for(int k = 0; k < nd; k++){
+				for(int y = 0; y < nh; y++){
+					custo += x[i][j][k][y] * disp[i][k][y] * custo_por_indisponibilidade;
+					custo += x[i][j][k][y] * npref[i][k][y] * custo_por_nao_preferencia;
+				}
+			}
+		}
+	}
+
+	//Custo por buraco na grade
+	for(int i = 0; i < np; i++){
+		for(int j = 0; j < nt; j++){
+			for(int k = 0; k < nd; k++){
+
+				if(am[i][k] == 1){
+
+					int custoBuraco = 0;
+					int achouPrimeiraAula = 0; 
+					for(int y = 0; y < nh; y++){
+
+						if(achouPrimeiraAula == 0){
+							achouPrimeiraAula = x[i][j][k][y];
+						}
+						else{
+							custoBuraco += (1 - x[i][j][k][y]) * custo_por_buraco_entre_aulas;
+							if(x[i][j][k][y] == 1){
+
+								custo += custoBuraco;
+								custoBuraco = 0;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+	//Custo por duas aulas no mesmo horario - professor
+	for(int i = 0; i < np; i++){
+		for(int k = 0; k < nd; k++){
+			for(int y = 0; y < nh; y++){
+				int qtd_aulas_no_horario = 0;
+				for(int j = 0; j < nt; j++){
+					custo += x[i][j][k][y] * qtd_aulas_no_horario * custo_por_aula_mesmo_horario;
+					qtd_aulas_no_horario += x[i][j][k][y];
+				}
+			}
+		}
+	}
+
+
 
 		/*for(j = 0; j < nt; j++){
 			
@@ -350,9 +455,9 @@ int funcao_objetivo(int**** x){
 				}
 			}
 		}*/
-	}
+	
 
-	return pontuacao;
+	return custo;
 }
 
 /***************** Metodos Auxiliares *****************/
@@ -490,6 +595,14 @@ void alocarAuxiliares(){
 		}
 	}
 
+	npref = (int***)malloc(sizeof(int**) * np);
+	for(int i = 0; i < np; i++){
+		npref[i] = (int**)malloc(sizeof(int*) * nd);
+		for(int k = 0; k < nd; k++){
+			npref[i][k] = (int*)calloc(nh, sizeof(int));
+		}
+	}
+
 	atd = (int***)malloc(sizeof(int**) * np);
 	for(int i = 0; i < np; i++){
 		atd[i] = (int**)malloc(sizeof(int*) * nt);
@@ -511,6 +624,13 @@ void limparAuxiliares(){
 		for(int k = 0; k < nd; k++){
 			for(int y = 0; y < nh; y++)
 				disp[i][k][y] = 0;
+		}
+	}
+
+	for(int i = 0; i < np; i++){
+		for(int k = 0; k < nd; k++){
+			for(int y = 0; y < nh; y++)
+				npref[i][k][y] = 0;
 		}
 	}
 
