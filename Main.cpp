@@ -2,6 +2,7 @@
 #include <string>
 #include <fstream>
 #include "json.hpp"
+#include "ListaDinEncad.h"
 
 using namespace std;
 using json = nlohmann::json;
@@ -43,8 +44,8 @@ void alocarAuxiliares();
 void limparAuxiliares();
 void limparSolucao(int**** x);
 int**** alocarMatrizSolucao();
-void grasp(int alpha);
-void solucao_inicial(int**** x, int alpha);
+void grasp(double alpha);
+void solucao_inicial(int**** x, double alpha);
 void busca_local(int**** x);
 bool stopCondition();
 int pegarMelhorHorario_Professor_Turma(int p, int t, int *mDia, int *mHora, int ignorarConflitoProfessor, int**** x);
@@ -75,20 +76,21 @@ int main(int argc, char const *argv[])
 	return 0;
 }
 
-void grasp(int alpha){
+void grasp(double alpha){
 
 	solucao_inicial(best, alpha);
 	//reparo
 	int custo = funcao_objetivo(best);
-	cout << custo;
+	//cout << custo;
 
 	limparAuxiliares();
 
+	/*
 	while(!stopCondition()){
 
 		solucao_inicial(s, alpha);
 		//reparo
-		busca_local(s);
+		//busca_local(s);
 		int custo_s = funcao_objetivo(s);
 		cout << custo_s << "\n";
 
@@ -99,9 +101,9 @@ void grasp(int alpha){
 		}
 		limparAuxiliares();
 		limparSolucao(s);
-	}
+	}*/
 
-	cout << custo << "\n";
+	//cout << custo << "\n";
 }
 
 bool stopCondition(){
@@ -112,7 +114,122 @@ bool stopCondition(){
 
 
 /***************** Construção de solução inicial *****************/
-void solucao_inicial(int**** x, int alpha){
+void solucao_inicial(int**** x, double alpha){
+
+	Lista* lista = NULL;
+
+	while(existeAulaParaAlocar() == 1){
+
+		libera_lista(lista);
+		lista = cria_lista();
+
+		float maiorUrgencia = 0;
+
+		for(int i = 0; i < np; i++){
+			for(int j = 0; j < nt; j++){
+
+				if(R[i][j] > 0){
+					float urgencia = 0;
+					urgencia = R[i][j];
+
+					int n_disp = 1;
+					for(int  k = 0; k < nd; k++){
+						for(int y = 0; y < nh; y++){
+							if(x[i][j][k][y] == 0 && !existeAulaNesseHorario_Turma(j, k, y, x) && !existeAulaNesseHorario_Professor(i, k, y, x)){
+								n_disp += 1;
+							}
+						}
+					}
+
+					urgencia = urgencia / n_disp;
+					Urgencia urgenciaTipo = { .urgencia = urgencia, .professor = i, .turma = j};
+					//cout << urgencia << " urgencia de todos \n";
+
+					if(*lista != NULL){
+						
+						if(urgencia > (*lista)->dados.urgencia){
+							//limpar toda a lista
+							//Alocar tudo de novo
+
+							
+							Lista* aux = cria_lista();
+							Elem* elemento = *lista;
+							while(elemento != NULL){
+								insere_lista_final(aux, elemento->dados);
+								elemento = elemento->prox;
+							}
+
+							libera_lista(lista);
+							lista = cria_lista();
+							insere_lista_final(lista, urgenciaTipo);
+
+							elemento = *aux;
+							while(elemento != NULL && elemento->dados.urgencia >= urgenciaTipo.urgencia * alpha){
+
+								insere_lista_final(lista, elemento->dados);
+								elemento = elemento->prox;
+							}
+						}
+						else if(urgencia >= (*lista)->dados.urgencia * alpha){
+
+							insere_lista_final(lista, urgenciaTipo);
+						}
+					}
+					else{
+						insere_lista_final(lista, urgenciaTipo);
+					}
+				}
+			}
+		}
+	
+
+	//PRINT DA LISTA
+	/*Elem* elemento = *lista;
+	while(elemento != NULL){
+		cout << elemento->dados.urgencia << "\n";
+		elemento = elemento->prox;
+	}*/
+
+		//Algoritmo de sortear um cara da lista - Repare que a lista fica dando voltas!
+		int sorted = rand() % 100;
+		int i = 0;
+		Elem* elemento = *lista;
+		for(int i = 0; i < sorted; i++){
+			elemento = elemento->prox;
+			if(elemento == NULL)
+				elemento = *lista;
+		}
+
+		
+		Urgencia urg = elemento->dados;
+		int pu = urg.professor;
+		int tu = urg.turma;
+
+		while(R[pu][tu] > 0){
+
+			int mDia = 0;
+			int mHora = 0;
+			int ok = pegarMelhorHorario_Professor_Turma(pu, tu, &mDia, &mHora, 0, x);
+
+			//Ocorre quando o professor não tem horário disponível para aquela turma, alocamos duas aulas no mesmo horário!
+			if(ok == 0){
+				pegarMelhorHorario_Professor_Turma(pu, tu, &mDia, &mHora, 1, x);
+			}
+
+			x[pu][tu][mDia][mHora] = 1;
+			R[pu][tu] -= 1;
+			disp[pu][mDia][mHora] = 0;
+			atd[pu][tu][mDia] += 1;
+			am[pu][mDia] = 1;
+		}
+	}
+
+	
+	printar_solucao(x);
+	//funcao_objetivo(x);
+
+}
+/*void solucao_inicial(int**** x, int alpha){
 
 
 	while(existeAulaParaAlocar() == 1){
@@ -208,7 +325,7 @@ void solucao_inicial(int**** x, int alpha){
 	//funcao_objetivo(x);
 
 }
-
+*/
 /***************** Heurística baseada em pontuação - testes empíricos *****************/
 int pegarMelhorHorario_Professor_Turma(int p, int t, int *mDia, int *mHora, int ignorarConflitoProfessor, int**** x){
 	
