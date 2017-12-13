@@ -50,6 +50,7 @@ void carregarDados();
 void alocarAuxiliares();
 void limparAuxiliares();
 void limparSolucao(int**** x);
+void setarAulaMarcada(int**** x);
 int**** alocarMatrizSolucao();
 void grasp(double alpha);
 void solucao_inicial(int**** x, double alpha);
@@ -113,7 +114,7 @@ void grasp(double alpha){
 		limparSolucao(s);
 	}
 
-	//printar_solucao(best);
+	printar_solucao(best);
 
 	cout << "melhor custo: " << custo << "\n";
 }
@@ -383,7 +384,10 @@ void busca_local(int**** x){
 							
 							x[troca.i][troca.t][troca.d][troca.h] = 1;
 							x[troca.i][troca.t][troca.k][troca.y] = 0;
+							//setar aula marccada pra esses dois caras...
+							//ver se eles ganharam uma nova aula marcada ou perderam uma no caso
 
+							setarAulaMarcada(x);
 							busca_local(x);
 						}
 					}
@@ -399,9 +403,10 @@ void busca_local(int**** x){
 /***************** Função Objetivo *****************/
 int funcao_objetivo(int**** x){
 
-	/* função objetivo
+	/*Função Objetivo
 	- Conferir se a configuração das aulas está da melhor maneira. Exemplo 6 tempos da 3,3. 4 Tempos 2,2. 3 Tempos 2,1
 	- Conferir quadras de educação física -- Não pode ter tantas aulas de educação física de acordo com o número de salas
+	- Artes e educação física tem mais peso para ter duas aulas juntos!!! MUITO MAIS
 	- Conferir quantos horarios de não preferência foi desrespeitada -- OK
 	- Conferir quantos horarios que ele não poderia foi desrespeitado -- OK
 	- Conferir a quantidade de vezes que ele vai para a escola na semana -- OK
@@ -410,7 +415,7 @@ int funcao_objetivo(int**** x){
 	*/
 
 	int custo = 0;
-	int custo_por_dia_na_escola = 10; //Número base a ser elevado
+	int custo_por_dia_na_escola = 9; //Número base a ser elevado
 	int custo_por_indisponibilidade = 5000;
 	int custo_por_nao_preferencia = 1000;
 	int custo_por_buraco_entre_aulas = 100;
@@ -425,7 +430,8 @@ int funcao_objetivo(int**** x){
 			
 		}
 
-		custo += pow(2, 10 + quantidade_de_dias);
+		custo += pow(2, custo_por_dia_na_escola + quantidade_de_dias);
+		
 	}
 
 	//Custo por aula em horário indisponível e não preferência
@@ -480,29 +486,7 @@ int funcao_objetivo(int**** x){
 				}
 			}
 		}
-	}
-
-
-
-		/*for(j = 0; j < nt; j++){
-			
-			if(R_total[i][j] > 0){
-
-				int qtd_melhor_pontuacao = 0;
-				int qtd_2melhor_pontuacao = 0;
-				int qtd_3melhor_pontuacao = 0;
-				if(R_total[i][j] == 6){
-					qtd_melhor_pontuacao = 3;
-				}
-
-				for(k = 0; k < nd; k++){
-
-
-					pontuacao +=  
-				}
-			}
-		}*/
-	
+	}	
 
 	return custo;
 }
@@ -574,6 +558,28 @@ void copiar_solucao(int**** s, int**** best){
 			for(int k = 0; k < nd; k++){
 				for(int y = 0; y < nh; y++){
 					best[i][j][k][y] = s[i][j][k][y];
+				}
+			}
+		}
+	}
+}
+
+void setarAulaMarcada(int**** x){
+
+	for(int i = 0; i < np; i++){
+		for(int k = 0; k < nd; k++)
+			am[i][k] = 0;
+	}
+
+	for(int p = 0; p < np; p++){
+		for(int h = 0; h < nh; h++){
+			for(int t = 0; t < nt; t++){
+				for(int d = 0; d < nd; d++){
+
+					if(x[p][t][d][h] == 1){
+						am[p][d] = 1;
+						break;
+					}
 				}
 			}
 		}
