@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include "ListaDinEncad.h"
 
-
-
 Lista* cria_lista(){
 	Lista* li = (Lista*)malloc(sizeof(Lista));
 	if(li != NULL)
