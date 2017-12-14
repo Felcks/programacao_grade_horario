@@ -19,7 +19,7 @@ typedef struct troca {
 
 /***************** Variáveis *****************/
 int nh = 0; //Numero de horários de aula em um dia D
-int nd = 0; //Numero de dias de aula por semana
+int nd = 0; //Numero de dias com aula por semana
 int nt = 0; //Numero de turmas
 int np = 0; //Numero de professores
 int nm = 0; //Numero de materias
@@ -42,7 +42,20 @@ int*** atd; //n é o numero de vezes que o professor p da aula pra turma t no di
 int** am; //1 Se o professor p tem aula marcada no dia d --> am[p][d]
 
 int no_improvement_count = 0;
-int no_improvement_max = 10;
+int no_improvement_max = 10000;
+
+/* Constantes da heurística de alocação de aulas */
+const int pontuacao_por_dia_na_escola = 10;
+const int pontuacao_muitas_aulas_em_um_dia = -30;
+const int pontuacao_aula_anterior_ou_posterior_turma = 10;
+const int pontuacao_aula_anterior_ou_posterior = 5;
+
+/*Constantes da função objetivo */
+const int custo_por_dia_na_escola = 9; //Número a ser elevado
+const int custo_por_indisponibilidade = 5000;
+const int custo_por_nao_preferencia = 1000;
+const int custo_por_buraco_entre_aulas = 200;
+const int custo_por_aula_mesmo_horario = 5000;
 /***************** Variáveis FIM *****************/
 
 /***************** Escopo de Funções *****************/
@@ -89,7 +102,6 @@ int main(int argc, char const *argv[])
 void grasp(double alpha){
 
 	solucao_inicial(best, alpha);
-	//reparo
 	int custo = funcao_objetivo(best);
 	cout << "custo primeira: " << custo << "\n";
 
@@ -105,8 +117,8 @@ void grasp(double alpha){
 		int custo_s2 = funcao_objetivo(s);
 		cout << "sem busca local: " << custo_s << " com busca local: " << custo_s2 << "\n";
 
-		if(custo_s < custo){
-			custo = custo_s;
+		if(custo_s2 < custo){
+			custo = custo_s2;
 			no_improvement_count = 0;
 			copiar_solucao(s, best);
 		}
@@ -237,49 +249,64 @@ int pegarMelhorHorario_Professor_Turma(int p, int t, int *mDia, int *mHora, int 
 	int mHoras[25];
 	int tamanho = 0;
 
-
+	 
 	for(int  k = 0; k < nd; k++){
 				
 		int start = t_turno[t] * (nh/ntrn);
-
 		int end = (t_turno[t]+1) * (nh/ntrn);
 
 		for(int y = start; y < end; y++){
 
-			int cPontuacao = 0; //pontuacao atual
+			int cPontuacao = 0;
 
-			if(am[p][k] == 1){ //Se ele ja tem que aparecer na escola!
-				cPontuacao += 10;
+			/* Conferir se ele já precisa ir na escola naquele dia */
+			if(am[p][k] == 1){
+				cPontuacao += pontuacao_por_dia_na_escola;
 			}
 			
-			//Professores com 6 aulas gostam de aulas triplas
+			/*  Quantidade de aulas no dia.
+				Professores com 6 aulas preferem aulas triplas
+				Professores com menos de 6 preferem aulas duplas */
 			if(R_total[p][t] >= 6){
-				if(atd[p][t][k] >= 3) //Se ja tem três aulas praquela turma naquele dia
-				{
-					cPontuacao -= 30;
+				if(atd[p][t][k] >= 3){
+					cPontuacao += pontuacao_muitas_aulas_em_um_dia;
 				}
 			}
-			else{ //professores com menos de 6 aulas preferem aulas duplas
-				if(atd[p][t][k] >= 2) //Se ja tem duas aulas praquela turma naquele dia
-				{
-					cPontuacao -= 30;
+			else{ 
+				if(atd[p][t][k] >= 2) {
+					cPontuacao += pontuacao_muitas_aulas_em_um_dia;
 				}
 			}
 
 
-
-			//checando se tem aula anterior
+			/* Checando se tem aula anterior e posterior para aquela turma */ 
 			if(y > 0){
 				if(x[p][t][k][y-1] == 1)
-					cPontuacao += 10;
+					cPontuacao += pontuacao_aula_anterior_ou_posterior_turma;
+				else{
+					for(int j = 0; j < nt; j++){
+						if(x[p][j][k][y-1] == 1 && j != t)
+							cPontuacao += pontuacao_aula_anterior_ou_posterior;
+					}
+				}
 			}
+
 			if(y < 4){
 				if(x[p][t][k][y+1] == 1)
-					cPontuacao += 10;
+					cPontuacao += pontuacao_aula_anterior_ou_posterior_turma;
+				else{
+					for(int j = 0; j < nt; j++){
+						if(x[p][j][k][y+1] == 1 && j != t)
+							cPontuacao += pontuacao_aula_anterior_ou_posterior;
+					}
+				}
 			}
 
+			/* Conferir se tem aula de educação fisica nesse horario */
 
 
+			/* Ele só valida esse horário se não existe aula para turma nesse horário */
+			/* Ele valida esse horário se não existe aula para o professer nesse horário ou quando ignorarConflitProfessor for verdadeiro */
 			if(x[p][t][k][y] == 0 && !existeAulaNesseHorario_Turma(t, k, y, x) && (!existeAulaNesseHorario_Professor(p, k, y, x) || ignorarConflitoProfessor)){
 
 				if(cPontuacao == mPontuacao){
@@ -302,25 +329,15 @@ int pegarMelhorHorario_Professor_Turma(int p, int t, int *mDia, int *mHora, int 
 					mPontuacao = cPontuacao;
 				}
 			}
-
-			/*if(cPontuacao > mPontuacao && x[p][t][k][y] == 0 && !existeAulaNesseHorario_Turma(t, k, y) && (!existeAulaNesseHorario_Professor(p, k, y) || ignorarConflitoProfessor)){
-				mPontuacao = cPontuacao;
-				*mDia = k;
-				*mHora = y;
-				alocou = 1;
-			}*/
 		}
 	}
 
 
-		if(tamanho >= 1){
-			//printf("%i\n", tamanho);
-			int sorted = rand() % tamanho;
-			*mDia = mDias[sorted];
-			*mHora = mHoras[sorted];
-
-		}
-
+	if(tamanho >= 1){
+		int sorted = rand() % tamanho;
+		*mDia = mDias[sorted];
+		*mHora = mHoras[sorted];
+	}
 
 
 	return alocou;
@@ -342,6 +359,9 @@ void busca_local(int**** x){
 				/* aulaMarcada controla a quantidade de aulas que um professor da em um horário
 					Se já tiver aulaMarcada nesse horário e achar outra, tentamos trocar essa aula com outra*/
 				int aulaMarcada = 0;
+				/* Guarda o indice da primeira turma que achou aula om o intuito de fazermos a busca local nela também*/
+				int t1 = 0;
+
 				for(int t = 0; t < nt; t++){
 					
 					int valor = x[p][t][d][h];
@@ -373,6 +393,26 @@ void busca_local(int**** x){
 										x[i][t][d][h] = 0;
 										x[i][t][k][y] = 1;								
 									}
+
+									if(x[i][t1][k][y] == 1 && i != p && (k != d || y != h)){
+										
+										//Executa troca
+										x[p][t1][d][h] = 0;
+										x[p][t1][k][y] = 1;
+										x[i][t1][d][h] = 1;
+										x[i][t1][k][y] = 0;
+
+										custo_s2 = funcao_objetivo(x);
+										if(custo_s2 < troca.custo){
+											troca = { .custo = custo_s2, .t = t1, .p = p, .d = d, .h = h, .i = i, .k = k, .y = y};
+										}
+
+										//Desfaz troca
+										x[p][t1][d][h] = 1;
+										x[p][t1][k][y] = 0;
+										x[i][t1][d][h] = 0;
+										x[i][t1][k][y] = 1;								
+									}
 								}
 							}
 						}
@@ -393,6 +433,7 @@ void busca_local(int**** x){
 					}
 					else if(valor == 1){
 						aulaMarcada = 1;
+						t1 = t;
 					}
 				}
 			}
@@ -415,11 +456,7 @@ int funcao_objetivo(int**** x){
 	*/
 
 	int custo = 0;
-	int custo_por_dia_na_escola = 9; //Número base a ser elevado
-	int custo_por_indisponibilidade = 5000;
-	int custo_por_nao_preferencia = 1000;
-	int custo_por_buraco_entre_aulas = 100;
-	int custo_por_aula_mesmo_horario = 5000;
+	
 
 	//Custo por dia na escola
 	for(int i = 0; i < np; i++){
