@@ -11923,3 +11923,390 @@ sem busca local: 137776 com busca local: 124808
 16:40 Ing Art Ing Geo EdF 
 
 melhor custo: 79752
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+         TURMA 1701
+      SEG TER QUA QUI SEX
+07:30 His Mat Geo Geo Art 
+08:20 Art His EdF Cie Ing 
+09:10 Prt Prt Mat Mat Cie 
+10:20 Prt Prt Mat Cie Ing 
+11:10 Prt Prt EdF Geo His 
+13:00 --- --- --- --- --- 
+13:50 --- --- --- --- --- 
+15:00 --- --- --- --- --- 
+15:50 --- --- --- --- --- 
+16:40 --- --- --- --- --- 
+
+         TURMA 1702
+      SEG TER QUA QUI SEX
+07:30 --- --- --- --- --- 
+08:20 --- --- --- --- --- 
+09:10 --- --- --- --- --- 
+10:20 --- --- --- --- --- 
+11:10 --- --- --- --- --- 
+13:00 His His EdF Prt Cie 
+13:50 Geo Geo Mat Prt Ing 
+15:00 Geo Art Mat Prt Prt 
+15:50 Art His EdF Mat Prt 
+16:40 Ing Mat Cie Cie Prt 
+
+         TURMA 1703
+      SEG TER QUA QUI SEX
+07:30 Art His Mat Prt His 
+08:20 Ing Mat Mat Prt His 
+09:10 Ing Mat Prt Prt Art 
+10:20 Geo EdF Prt Geo Cie 
+11:10 Geo EdF Prt Cie Cie 
+13:00 --- --- --- --- --- 
+13:50 --- --- --- --- --- 
+15:00 --- --- --- --- --- 
+15:50 --- --- --- --- --- 
+16:40 --- --- --- --- --- 
+
+         TURMA 1704
+      SEG TER QUA QUI SEX
+07:30 --- --- --- --- --- 
+08:20 --- --- --- --- --- 
+09:10 --- --- --- --- --- 
+10:20 --- --- --- --- --- 
+11:10 --- --- --- --- --- 
+13:00 Geo EdF Prt Mat EdF 
+13:50 Ing His Prt Mat Cie 
+15:00 Art Mat Prt Prt Cie 
+15:50 Art Mat Cie Prt His 
+16:40 Ing Geo Geo Prt His 
+
+         TURMA 1801
+      SEG TER QUA QUI SEX
+07:30 Mat EdF Prt Geo Cie 
+08:20 His EdF Prt Geo Cie 
+09:10 Geo Art Mat Ing Art 
+10:20 Mat His Mat Prt Cie 
+11:10 Mat His Mat Prt Ing 
+13:00 --- --- --- --- --- 
+13:50 --- --- --- --- --- 
+15:00 --- --- --- --- --- 
+15:50 --- --- --- --- --- 
+16:40 --- --- --- --- --- 
+
+         TURMA 1802
+      SEG TER QUA QUI SEX
+07:30 --- --- --- --- --- 
+08:20 --- --- --- --- --- 
+09:10 --- --- --- --- --- 
+10:20 --- --- --- --- --- 
+11:10 --- --- --- --- --- 
+13:00 Ing Mat Prt Mat Ing 
+13:50 Art Mat Prt Mat Geo 
+15:00 Cie Mat EdF Mat His 
+15:50 Cie Geo Art Prt His 
+16:40 Geo His EdF Prt Cie 
+
+         TURMA 1803
+      SEG TER QUA QUI SEX
+07:30 --- --- --- --- --- 
+08:20 --- --- --- --- --- 
+09:10 --- --- --- --- --- 
+10:20 --- --- --- --- --- 
+11:10 --- --- --- --- --- 
+13:00 Cie Prt EdF Geo His 
+13:50 Cie Prt EdF Geo His 
+15:00 Mat His Prt Art Cie 
+15:50 Geo Mat Prt Mat Ing 
+16:40 Art Mat Mat Mat Ing 
+
+         TURMA 1901
+      SEG TER QUA QUI SEX
+07:30 Art Prt Mat EdF Prt 
+08:20 Art Prt Mat Geo Prt 
+09:10 Mat His Mat EdF His 
+10:20 Mat Geo Cie Ing His 
+11:10 Mat Geo Cie Ing Cie 
+13:00 --- --- --- --- --- 
+13:50 --- --- --- --- --- 
+15:00 --- --- --- --- --- 
+15:50 --- --- --- --- --- 
+16:40 --- --- --- --- --- 
+
+         TURMA 1902
+      SEG TER QUA QUI SEX
+07:30 Mat Geo EdF Ing His 
+08:20 Mat Geo Cie Ing His 
+09:10 Art Prt Cie Geo Mat 
+10:20 Art Prt Mat Cie Mat 
+11:10 EdF His Mat Prt Prt 
+13:00 --- --- --- --- --- 
+13:50 --- --- --- --- --- 
+15:00 --- --- --- --- --- 
+15:50 --- --- --- --- --- 
+16:40 --- --- --- --- --- 
+
+         TURMA 1903
+      SEG TER QUA QUI SEX
+07:30 --- --- --- --- --- 
+08:20 --- --- --- --- --- 
+09:10 --- --- --- --- --- 
+10:20 --- --- --- --- --- 
+11:10 --- --- --- --- --- 
+13:00 Mat EdF Mat Ing Prt 
+13:50 Mat EdF Mat Ing Prt 
+15:00 Mat Geo Mat Geo His 
+15:50 His Prt Cie Geo Cie 
+16:40 His Prt Art Art Cie 
+
+melhor custo: 95568
+Professor 0, buraco de 5 ate 8 no dia 1
+Professor 1, buraco de 1 ate 4 no dia 2
+Professor 1, buraco de 5 ate 8 no dia 2
+Professor 1, buraco de 7 ate 9 no dia 2
+Professor 2, buraco de 1 ate 3 no dia 4
+Professor 6, buraco de 1 ate 3 no dia 4
+Professor 11, buraco de 1 ate 3 no dia 3
+Professor 12, buraco de 6 ate 9 no dia 0
+professor: 0aulas duplas: 0
+professor: 1aulas duplas: 0
+professor: 2aulas duplas: 0
+professor: 3aulas duplas: 0
+professor: 4aulas duplas: 0
+professor: 5aulas duplas: 0
+professor: 6aulas duplas: 0
+professor: 7aulas duplas: 0
+professor: 8aulas duplas: 0
+professor: 9aulas duplas: 0
+professor: 10aulas duplas: 0
+professor: 11aulas duplas: 0
+professor: 12aulas duplas: 0
+professor: 13aulas duplas: 0
+professor: 14aulas duplas: 0
+professor: 15aulas duplas: 0
+professor: 16aulas duplas: 0
+professor: 17aulas duplas: 0
+professor: 18aulas duplas: 0
+249413

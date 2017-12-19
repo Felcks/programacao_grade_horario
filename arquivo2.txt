@@ -1,0 +1,276 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+         TURMA 1701
+      SEG TER QUA QUI SEX
+07:30 Prt Ing Geo Cie Mat 
+08:20 Prt Mat Geo His Mat 
+09:10 Ing Mat His Prt EdF 
+10:20 Art Prt His Prt Geo 
+11:10 Art Prt Cie Cie EdF 
+13:00 --- --- --- --- --- 
+13:50 --- --- --- --- --- 
+15:00 --- --- --- --- --- 
+15:50 --- --- --- --- --- 
+16:40 --- --- --- --- --- 
+
+         TURMA 1702
+      SEG TER QUA QUI SEX
+07:30 --- --- --- --- --- 
+08:20 --- --- --- --- --- 
+09:10 --- --- --- --- --- 
+10:20 --- --- --- --- --- 
+11:10 --- --- --- --- --- 
+13:00 Geo His Cie Geo Art 
+13:50 Geo Mat His EdF Mat 
+15:00 Prt Mat Prt His Art 
+15:50 Prt Ing Prt Cie EdF 
+16:40 Prt Ing Prt Cie Mat 
+
+         TURMA 1703
+      SEG TER QUA QUI SEX
+07:30 Geo Prt Cie EdF Art 
+08:20 Ing Prt His Cie Art 
+09:10 Prt Prt Geo Cie Mat 
+10:20 Prt Mat Geo His Mat 
+11:10 Prt Mat EdF His Ing 
+13:00 --- --- --- --- --- 
+13:50 --- --- --- --- --- 
+15:00 --- --- --- --- --- 
+15:50 --- --- --- --- --- 
+16:40 --- --- --- --- --- 
+
+         TURMA 1704
+      SEG TER QUA QUI SEX
+07:30 --- --- --- --- --- 
+08:20 --- --- --- --- --- 
+09:10 --- --- --- --- --- 
+10:20 --- --- --- --- --- 
+11:10 --- --- --- --- --- 
+13:00 Prt Mat Ing His Art 
+13:50 Prt Prt Cie His Art 
+15:00 Prt Prt His Cie Mat 
+15:50 Geo Prt Geo Ing Mat 
+16:40 Geo Mat Cie EdF EdF 
+
+         TURMA 1801
+      SEG TER QUA QUI SEX
+07:30 EdF Geo Mat His Art 
+08:20 EdF Geo Mat Prt Cie 
+09:10 Cie His Mat His Mat 
+10:20 Cie Ing Prt Geo Mat 
+11:10 Ing Art Prt Prt Mat 
+13:00 --- --- --- --- --- 
+13:50 --- --- --- --- --- 
+15:00 --- --- --- --- --- 
+15:50 --- --- --- --- --- 
+16:40 --- --- --- --- --- 
+
+         TURMA 1802
+      SEG TER QUA QUI SEX
+07:30 --- --- --- --- --- 
+08:20 --- --- --- --- --- 
+09:10 --- --- --- --- --- 
+10:20 --- --- --- --- --- 
+11:10 --- --- --- --- --- 
+13:00 Prt Geo Mat Ing EdF 
+13:50 Prt Geo Prt Geo EdF 
+15:00 Ing Cie His His Cie 
+15:50 Art Mat His Mat Cie 
+16:40 Art Mat Mat Mat Prt 
+
+         TURMA 1803
+      SEG TER QUA QUI SEX
+07:30 --- --- --- --- --- 
+08:20 --- --- --- --- --- 
+09:10 --- --- --- --- --- 
+10:20 --- --- --- --- --- 
+11:10 --- --- --- --- --- 
+13:00 Art Cie Prt Mat Ing 
+13:50 Art Cie Mat Mat Cie 
+15:00 Geo Prt Mat Mat Prt 
+15:50 EdF Geo Mat His Prt 
+16:40 EdF Geo His His Ing 
+
+         TURMA 1901
+      SEG TER QUA QUI SEX
+07:30 Art Art Prt Mat Geo 
+08:20 Geo Ing Prt Mat Geo 
+09:10 Prt Ing Mat Mat Cie 
+10:20 Prt His Mat EdF Cie 
+11:10 Cie His Mat EdF His 
+13:00 --- --- --- --- --- 
+13:50 --- --- --- --- --- 
+15:00 --- --- --- --- --- 
+15:50 --- --- --- --- --- 
+16:40 --- --- --- --- --- 
+
+         TURMA 1902
+      SEG TER QUA QUI SEX
+07:30 Prt Mat Mat Cie Cie 
+08:20 Prt Mat Mat Cie EdF 
+09:10 Ing Art Prt His Geo 
+10:20 His Art Prt Mat EdF 
+11:10 His Ing Geo Mat Geo 
+13:00 --- --- --- --- --- 
+13:50 --- --- --- --- --- 
+15:00 --- --- --- --- --- 
+15:50 --- --- --- --- --- 
+16:40 --- --- --- --- --- 
+
+         TURMA 1903
+      SEG TER QUA QUI SEX
+07:30 --- --- --- --- --- 
+08:20 --- --- --- --- --- 
+09:10 --- --- --- --- --- 
+10:20 --- --- --- --- --- 
+11:10 --- --- --- --- --- 
+13:00 Ing Prt Mat Mat Prt 
+13:50 EdF Prt Mat Mat Prt 
+15:00 EdF Geo Mat Mat Art 
+15:50 Cie His His Geo Cie 
+16:40 Ing His Art Geo Cie 
+
+melhor custo: 93272
+Professor 1, buraco de 2 ate 4 no dia 4
+Professor 1, buraco de 1 ate 3 no dia 4
+Professor 5, buraco de 5 ate 9 no dia 2
+Professor 6, buraco de 5 ate 9 no dia 4
+Professor 7, buraco de 2 ate 4 no dia 4
+Professor 11, buraco de 6 ate 9 no dia 2
+Professor 12, buraco de 5 ate 9 no dia 0
+Professor 13, buraco de 1 ate 4 no dia 3
+Professor 14, buraco de 6 ate 9 no dia 4
+Professor 14, buraco de 5 ate 9 no dia 1
+Professor 16, buraco de 5 ate 7 no dia 4
+professor: 0aulas duplas: 0
+professor: 1aulas duplas: 0
+professor: 2aulas duplas: 0
+professor: 3aulas duplas: 0
+professor: 4aulas duplas: 0
+professor: 5aulas duplas: 0
+professor: 6aulas duplas: 0
+professor: 7aulas duplas: 0
+professor: 8aulas duplas: 0
+professor: 9aulas duplas: 0
+professor: 10aulas duplas: 0
+professor: 11aulas duplas: 0
+professor: 12aulas duplas: 0
+professor: 13aulas duplas: 0
+professor: 14aulas duplas: 0
+professor: 15aulas duplas: 0
+professor: 16aulas duplas: 0
+professor: 17aulas duplas: 0
+professor: 18aulas duplas: 0
+357353

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <time.h>
 #include "json.hpp"
 #include "ListaDinEncad.h"
 
@@ -42,7 +43,7 @@ int*** atd; //n é o numero de vezes que o professor p da aula pra turma t no di
 int** am; //1 Se o professor p tem aula marcada no dia d --> am[p][d]
 
 int no_improvement_count = 0;
-int no_improvement_max = 100;
+int no_improvement_max = 1000;
 
 /* Constantes da heurística de alocação de aulas */
 const int pontuacao_por_dia_na_escola = 10;
@@ -57,6 +58,10 @@ const int custo_por_nao_preferencia = 1000;
 const int custo_por_buraco_entre_aulas = 200;
 const int custo_por_aula_mesmo_horario = 5000;
 const int custo_por_aula_nao_consecutiva = 100;
+
+/*Variáveis para medir o tempo */
+clock_t c2, c1;
+float tempo;
 /***************** Variáveis FIM *****************/
 
 /***************** Escopo de Funções *****************/
@@ -194,7 +199,8 @@ void buracoProf()
 int main(int argc, char const *argv[])
 {	
 	srand(time(NULL));
-
+	c1 = clock();
+	
 	carregarDados();
 	alocarAuxiliares();
 	completarDIS();
@@ -211,6 +217,9 @@ int main(int argc, char const *argv[])
 
 	mostrarAulasDuplas(best);
 
+	c2 = clock();
+	tempo = (c2 - c1)*1000/CLOCKS_PER_SEC;
+	cout << tempo << "\n";
 	return 0;
 }
 
@@ -218,7 +227,7 @@ void grasp(double alpha){
 
 	solucao_inicial(best, alpha);
 	int custo = funcao_objetivo(best);
-	cout << "custo primeira: " << custo << "\n";
+	//cout << "custo primeira: " << custo << "\n";
 
 	limparAuxiliares();
 
@@ -230,7 +239,7 @@ void grasp(double alpha){
 		
 		busca_local(s);
 		int custo_s2 = funcao_objetivo(s);
-		cout << "sem busca local: " << custo_s << " com busca local: " << custo_s2 << "\n";
+		//cout << "sem busca local: " << custo_s << " com busca local: " << custo_s2 << "\n";
 
 		if(custo_s2 < custo){
 			custo = custo_s2;
