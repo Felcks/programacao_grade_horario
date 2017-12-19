@@ -42,7 +42,7 @@ int*** atd; //n é o numero de vezes que o professor p da aula pra turma t no di
 int** am; //1 Se o professor p tem aula marcada no dia d --> am[p][d]
 
 int no_improvement_count = 0;
-int no_improvement_max = 10000;
+int no_improvement_max = 100;
 
 /* Constantes da heurística de alocação de aulas */
 const int pontuacao_por_dia_na_escola = 10;
@@ -56,6 +56,7 @@ const int custo_por_indisponibilidade = 5000;
 const int custo_por_nao_preferencia = 1000;
 const int custo_por_buraco_entre_aulas = 200;
 const int custo_por_aula_mesmo_horario = 5000;
+const int custo_por_aula_nao_consecutiva = 100;
 /***************** Variáveis FIM *****************/
 
 /***************** Escopo de Funções *****************/
@@ -69,6 +70,7 @@ void grasp(double alpha);
 void solucao_inicial(int**** x, double alpha);
 void busca_local(int**** x);
 bool stopCondition();
+void mostrarAulasDuplas(int**** x);
 int pegarMelhorHorario_Professor_Turma(int p, int t, int *mDia, int *mHora, int ignorarConflitoProfessor, int**** x);
 int funcao_objetivo(int**** x);
 
@@ -80,21 +82,134 @@ void copiar_solucao(int**** s, int**** best);
 /***************** Escopo de Funções *****************/
 
 
+const vector<string> explode(const string& s, const char& c)
+{
+	string buff{""};
+	vector<string> v;
+	
+	for(auto n:s)
+	{
+		if(n != c) buff+=n; else
+		if(n == c && buff != "") { v.push_back(buff); buff = ""; }
+	}
+	if(buff != "") v.push_back(buff);
+	
+	return v;
+}
+
+void completarDIS(){
+
+	for (int p_id = 0; p_id < np; ++p_id)
+	{	
+		string nome_arq = "professores/";
+		char professor_letra = 'a' + p_id;
+		nome_arq += professor_letra; 
+		nome_arq += ".json";
+
+		// cout << nome_arq << endl;
+
+		ifstream arquivo(nome_arq);
+		string str((istreambuf_iterator<char>(arquivo)),
+	                 istreambuf_iterator<char>());
+		vector<string> v{explode(str, ',')};
+
+		int i = 0;
+
+		// passa pelos dias
+		for (int num_dia = 0; num_dia < 5; ++num_dia)
+		{
+			// passa pelos horarios
+			for (int num_horario = 0; num_horario < 10; ++num_horario)
+			{
+				// atribui o valor
+				// mudando o valor pra ficar igual ao do resto do codigo
+				// 1 = nao disponivel
+				// 0 = disponivel
+
+				int d = stoi(v.at(i),nullptr,10);
+				d = ~d;
+
+				// if (d == 0)
+				// {
+				// 	d = 1;
+				// }else if (d == 2){
+					
+					
+				// }
+				// else{
+				// 	d = 0;
+				// }
+
+				disp[p_id][num_dia][num_horario] = d;
+				i++;
+			}
+			cout << endl;
+		}
+
+		cout << endl;
+
+		arquivo.close();
+	}
+}
+
+void buracoProf()
+{
+
+	int buraco_horario = 0;
+
+	for (int id_prof = 0; id_prof < np; ++id_prof)
+	{
+		buraco_horario = 0;
+
+		for (int turma = 0; turma < nt; ++turma)
+		{
+			for (int dia = 0; dia < nd; ++dia)
+			{
+				buraco_horario = 0;
+
+					
+				for (int horario = 0; horario < nh; ++horario)
+				{
+
+					if (best[id_prof][turma][dia][horario] == 1 && buraco_horario > 0 && ((horario - buraco_horario) > 1))
+					{
+						cout << "Professor " << id_prof << ", buraco de " << buraco_horario << " ate " << horario << " no dia " << dia << endl;
+						// buraco_horario = horario;
+					}
+						
+					if (best[id_prof][turma][dia][horario] == 1)
+					{
+						buraco_horario = horario;
+					}
+
+				}
+			}
+			
+		}
+
+	}
+
+}
+
 int main(int argc, char const *argv[])
 {	
 	srand(time(NULL));
 
 	carregarDados();
 	alocarAuxiliares();
+	completarDIS();
 	best = alocarMatrizSolucao();
 	s = alocarMatrizSolucao();
 
+	if(argc > 1) no_improvement_max = atoi(argv[1]);
 	double alpha = 0.5;
-	if(argc > 1) alpha = atof(argv[1]);
-
-	if(argc > 2) no_improvement_max = atoi(argv[2]);
+	if(argc > 2) alpha = atof(argv[2]);
 
 	grasp(alpha);
+
+	buracoProf();
+
+	mostrarAulasDuplas(best);
 
 	return 0;
 }
@@ -445,7 +560,7 @@ void busca_local(int**** x){
 int funcao_objetivo(int**** x){
 
 	/*Função Objetivo
-	- Conferir se a configuração das aulas está da melhor maneira. Exemplo 6 tempos da 3,3. 4 Tempos 2,2. 3 Tempos 2,1
+	- Conferir se a configuração das aulas está da melhor maneira. Exemplo 6 tempos da 3,3. 4 Tempos 2,2. 3 Tempos 2,1 -- OK
 	- Conferir quadras de educação física -- Não pode ter tantas aulas de educação física de acordo com o número de salas
 	- Artes e educação física tem mais peso para ter duas aulas juntos!!! MUITO MAIS
 	- Conferir quantos horarios de não preferência foi desrespeitada -- OK
@@ -457,7 +572,6 @@ int funcao_objetivo(int**** x){
 
 	int custo = 0;
 	
-
 	//Custo por dia na escola
 	for(int i = 0; i < np; i++){
 		int quantidade_de_dias = 0;
@@ -524,6 +638,40 @@ int funcao_objetivo(int**** x){
 			}
 		}
 	}	
+
+	//Custo aulas consecutivas: 6 aulas o ideial são 3 aulas consecutivas; 4 aulas ou menor o ideial são 2 aulas consecutivas
+	for(int i = 0; i < np; i++){
+		for(int j = 0; j < nt; j++){
+			if(R_total[i][j] > 0){
+				for(int k = 0; k < nd; k++){
+
+					int quantidade_de_aula = 0;
+					for(int y = 0; y < nh; y++){
+						
+						if(x[i][j][k][y] == 1 && quantidade_de_aula == 0){
+							quantidade_de_aula++;
+						}
+						else if(x[i][j][k][y] == 1 && quantidade_de_aula > 0){
+							quantidade_de_aula++;
+						}
+						else if(x[i][j][k][y] == 0 && quantidade_de_aula > 0){
+							if(R_total[i][j] >= 6){
+								if(quantidade_de_aula <= 3)
+									custo += (3 - quantidade_de_aula) * custo_por_aula_nao_consecutiva;
+							}
+							else{
+								if(quantidade_de_aula <= 2)
+									custo += (2 - quantidade_de_aula) * custo_por_aula_nao_consecutiva;
+							}
+
+							quantidade_de_aula = 0;
+						}
+					}
+				}
+			}
+		}
+	}
+
 
 	return custo;
 }
@@ -775,5 +923,22 @@ int**** alocarMatrizSolucao(){
 }
 
 
+void mostrarAulasDuplas(int**** x){
 
+	for(int i = 0; i < np; i++){
+		int aulasDuplas = 0;
+		for(int k = 0; k < nd; k++){
+			for(int y = 0; y < nh; y++){
+				int aulaHorario = 0;
+				for(int j = 0; j < nt; j++){
+					aulaHorario += x[i][j][k][y];
+				}
 
+				if(aulaHorario > 1)
+					aulasDuplas += aulaHorario - 1;
+			}
+		}
+
+		cout << "professor: " << i << "aulas duplas: " << aulasDuplas << "\n";
+	}
+}
